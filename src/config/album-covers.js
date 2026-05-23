@@ -1,6 +1,4 @@
-import { ALBUM_DISPLAY_ORDER } from "./constants.js";
-
-export const ALBUM_COVER_BASE = "/image/album";
+import { ALBUM_DISPLAY_ORDER, assetUrl } from "./constants.js";
 
 /** Album display name → filename in public/image/album/ */
 export const ALBUM_COVER_FILES = {
@@ -24,7 +22,7 @@ export const ALBUM_COVER_FILES = {
 export function getAlbumCoverUrl(albumName) {
   const file = ALBUM_COVER_FILES[albumName];
   if (!file) return null;
-  return `${ALBUM_COVER_BASE}/${file}`;
+  return assetUrl(`image/album/${file}`);
 }
 
 export function albumsWithCovers(albumOrder = ALBUM_DISPLAY_ORDER) {

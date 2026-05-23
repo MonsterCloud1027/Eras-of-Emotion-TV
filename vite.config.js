@@ -49,7 +49,16 @@ function dataDirPlugin() {
   };
 }
 
+/** GitHub Project Pages: https://<user>.github.io/<repo>/ — set in CI via VITE_BASE_PATH */
+function normalizeBase(base) {
+  if (!base || base === "/") return "/";
+  return base.endsWith("/") ? base : `${base}/`;
+}
+
+const pagesBase = normalizeBase(process.env.VITE_BASE_PATH || "/");
+
 export default defineConfig({
+  base: pagesBase,
   root: rootDir,
   publicDir: "public",
   plugins: [dataDirPlugin()],

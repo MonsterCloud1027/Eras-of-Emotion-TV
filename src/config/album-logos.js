@@ -1,7 +1,4 @@
-import { ALBUM_DISPLAY_ORDER } from "./constants.js";
-
-/** Static files under public/image/ */
-export const IMAGE_BASE = "/image";
+import { ALBUM_DISPLAY_ORDER, assetUrl } from "./constants.js";
 
 /** Album display name → exact filename in public/image/ */
 export const ALBUM_LOGO_FILES = {
@@ -23,7 +20,7 @@ export const ALBUM_LOGO_FILES = {
 export function getAlbumLogoUrl(albumName) {
   const file = ALBUM_LOGO_FILES[albumName];
   if (!file) return null;
-  return `${IMAGE_BASE}/${file}`;
+  return assetUrl(`image/${file}`);
 }
 
 export function albumNamesWithLogos(albumOrder = ALBUM_DISPLAY_ORDER) {

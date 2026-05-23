@@ -1,17 +1,28 @@
 /** Shared paths & Plutchik wheel constants */
 
+/** Resolve public/data paths for GitHub Pages subpath (import.meta.env.BASE_URL). */
+export function assetUrl(path) {
+  const rel = path.replace(/^\//, "");
+  return `${import.meta.env.BASE_URL}${rel}`;
+}
+
 /** LLM-scored song wheel (default viz) */
-export const DATA_URL = "/data/song_emotion_wheel_data.llm.json";
+export const DATA_URL = assetUrl("data/song_emotion_wheel_data.llm.json");
 /** NRCLex test scores (preserved separately) */
-export const DATA_URL_TEST = "/data/song_emotion_wheel_data.test.json";
-export const SECTION_DATA_URL = "/data/section_emotion_wheel_data.llm.json";
-export const SECTION_DATA_URL_TEST = "/data/section_emotion_wheel_data.test.json";
+export const DATA_URL_TEST = assetUrl("data/song_emotion_wheel_data.test.json");
+export const SECTION_DATA_URL = assetUrl(
+  "data/section_emotion_wheel_data.llm.json"
+);
+export const SECTION_DATA_URL_TEST = assetUrl(
+  "data/section_emotion_wheel_data.test.json"
+);
 /** Section lyrics + scores for detail panel */
-export const SECTION_LYRICS_URL =
-  "/data/parsed_lyrics_sections_scored.json";
+export const SECTION_LYRICS_URL = assetUrl(
+  "data/parsed_lyrics_sections_scored.json"
+);
 
 /** Center image when scroll view is Global Galaxy */
-export const GLOBAL_CENTER_IMAGE = "/image/era-Photoroom.png";
+export const GLOBAL_CENTER_IMAGE = assetUrl("image/era-Photoroom.png");
 
 export const PLUTCHIK_ORDER = [
   "joy",
