@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <title>Taylor Swift Lyrics Emotion Galaxy</title>
+</head>
+<body>
+  <header class="hero">
+    <h1>Eras of Emotion(Taylor's Version)</h1>
+    <p class="hero-subtitle">
+      Each song mapped into a Plutchik-inspired radial emotion space
+    </p>
+    <p class="hero-explanation">
+      Scroll to explore.
+      Start with a mosaic of all covers, then focus on one album at a time.
+    </p>
+  </header>
+
+  <main>
+    <section id="scroll-stage" class="scroll-stage">
+      <div class="scroll-stage__sticky">
+        <div class="scroll-cover-pin" aria-hidden="true">
+          <div id="scroll-cover-layers" class="scroll-cover-layers"></div>
+        </div>
+        <div class="scroll-stage__viz card">
+          <div class="scroll-stage__header">
+            <div id="scroll-stage-label" class="scroll-stage-label" aria-live="polite">
+              <span class="stage-label-eyebrow">View</span>
+              <span class="stage-label-title">Global Galaxy</span>
+            </div>
+            <p class="section-hint">Hover a star for details. Click to pin · double-click a song for sections.</p>
+            <div id="section-type-legend" class="section-type-legend" hidden></div>
+          </div>
+          <div class="scroll-stage__layout">
+            <div class="overview-viz-wrap is-global-view">
+              <div class="overview-viz-frame">
+                <div id="wheel-glass-core" class="wheel-glass-core" aria-hidden="true"></div>
+                <div id="overview-viz" class="viz-container" aria-label="Radial emotion galaxy"></div>
+              </div>
+            </div>
+            <aside class="stage-sidebar">
+              <div id="detail-panel" class="detail-panel" aria-live="polite">
+                <h3>Song Detail</h3>
+                <p class="detail-placeholder">Click a song point to see details.</p>
+              </div>
+            </aside>
+          </div>
+        </div>
+        <nav
+          id="album-legend"
+          class="album-legend album-rail legend-mode--filter"
+          aria-label="Album filter and navigation"
+        ></nav>
+      </div>
+      <div id="scroll-track" class="scroll-track" aria-label="Scroll through albums"></div>
+    </section>
+  </main>
+
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+
+  <footer class="site-footer">
+    <p>Radial emotion wheel visualization &mdash; interpretable Plutchik space, not embedding.</p>
+  </footer>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
