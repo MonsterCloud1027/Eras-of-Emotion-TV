@@ -1,0 +1,22 @@
+[project]
+name = "eras-of-emotion-tv"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Rémy Fayet",email = "rems64des@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "pandas (>=3.0.3,<4.0.0)",
+    "openpyxl (>=3.1.5,<4.0.0)",
+    "plotly (>=6.7.0,<7.0.0)",
+    "ipykernel (>=7.2.0,<8.0.0)",
+    "nbformat (>=5.10.4,<6.0.0)",
+    "matplotlib (>=3.10.9,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
