@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="Description" content="Evolution of lyrical themes across Taylor Swift albums.">
+        <title>Lyrical Themes | INF8808</title>
+
+        <link rel="stylesheet" href="assets/style.css">
+        <link rel="stylesheet" href="assets/typography.css">
+    </head>
+
+    <body>
+        <header>
+            <h1>Evolution of Lyrical Themes</h1>
+            <h2>Emotional palette across Taylor Swift albums</h2>
+        </header>
+        <main>
+            <nav id="album-timeline" class="album-timeline"></nav>
+            <div class="viz-container">
+                <div class="graph" id="treemap">
+                    <svg class="treemap-svg"></svg>
+                </div>
+            </div>
+        </main>
+        <div id="tooltip" class="tooltip"></div>
+        <script src="https://d3js.org/d3.v7.js"></script>
+        <script type="module" src="index.js"></script>
+    </body>
+</html>

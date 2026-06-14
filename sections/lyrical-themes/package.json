@@ -1,0 +1,31 @@
+{
+    "name": "lyrical-themes",
+    "version": "1.0.0",
+    "description": "Lyrical themes treemap for INF8808.",
+    "main": "src/index.js",
+    "scripts": {
+        "build": "parcel build ./src/index.html",
+        "start": "parcel ./src/index.html --log-level=2 --port=8080",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "UNLICENSED",
+    "dependencies": {
+        "d3": "^7.6.1",
+        "parcel-bundler": "^1.12.4"
+    },
+    "devDependencies": {
+        "eslint": "^7.4.0",
+        "eslint-config-standard": "^14.1.1",
+        "eslint-plugin-import": "^2.22.0",
+        "eslint-plugin-jsdoc": "^29.1.0",
+        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-promise": "^4.2.1",
+        "eslint-plugin-standard": "^4.0.1"
+    },
+    "staticFiles": {
+        "staticPath": [
+            "./src/assets/data"
+        ]
+    }
+}
