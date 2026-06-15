@@ -587,11 +587,11 @@ body {
   white-space: nowrap;
 }
 
-.legend-swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+.legend-sparkle {
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
+  display: block;
 }
 
 .detail-panel {
@@ -732,8 +732,8 @@ body {
   display: grid;
   grid-template-columns: 72px 1fr 36px;
   align-items: center;
-  gap: 0.35rem;
-  margin-bottom: 0.3rem;
+  gap: 0.45rem;
+  margin-bottom: 0.55rem;
   font-size: 0.78rem;
 }
 
@@ -742,22 +742,42 @@ body {
 }
 
 .score-bar-track {
-  height: 6px;
-  background: var(--bg);
-  border-radius: 3px;
-  overflow: hidden;
+  position: relative;
+  height: 4px;
+  background: rgba(44, 36, 22, 0.1);
+  border-radius: 999px;
+  overflow: visible;
 }
 
 .score-bar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
   height: 100%;
-  border-radius: 3px;
-  background: var(--accent);
-  opacity: 0.7;
+  min-width: 0;
+  border-radius: 999px;
+  background-color: var(--score-bar-color, var(--accent));
+  box-shadow: 0 0 10px
+    color-mix(in srgb, var(--score-bar-color, var(--accent)) 35%, transparent);
+}
+
+.score-bar-note {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 15px;
+  height: 15px;
+  transform: translate(50%, -50%);
+  fill: currentColor;
+  color: inherit;
+  filter: drop-shadow(0 1px 2px rgba(44, 36, 22, 0.22));
+  pointer-events: none;
 }
 
 .score-bar-value {
   text-align: right;
   color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .detail-top3 {
@@ -1007,11 +1027,16 @@ body {
 
 .song-star-glow {
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+  mix-blend-mode: soft-light;
 }
 
 .song-star-core {
   pointer-events: none;
+}
+
+.song-point.is-hovered .song-star-glow {
+  mix-blend-mode: screen;
 }
 
 .song-point.dimmed {

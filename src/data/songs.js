@@ -59,6 +59,23 @@ export function groupSongsByAlbum(data) {
   return new Map(entries);
 }
 
+/** Stable default when an album scroll step is in focus (first track on the album). */
+export function pickRepresentativeSongForAlbum(
+  albumName,
+  songs = appState.allSongs
+) {
+  const grouped = groupSongsByAlbum(songs);
+  const albumSongs = grouped.get(albumName);
+  return albumSongs?.[0] ?? null;
+}
+
+/** Default song for the global galaxy scroll step. */
+export function pickRepresentativeSongForGlobal(songs = appState.allSongs) {
+  const grouped = groupSongsByAlbum(songs);
+  const firstAlbum = [...grouped.values()][0];
+  return firstAlbum?.[0] ?? songs[0] ?? null;
+}
+
 export function buildAlbumColorScale(data) {
   const albums = [...new Set(data.map(getAlbumKey))].sort(
     (a, b) => albumSortIndex(a) - albumSortIndex(b)

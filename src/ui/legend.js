@@ -1,7 +1,30 @@
 import * as d3 from "d3";
 import { appState } from "../state/app-state.js";
+import {
+  isDarkAlbumColor,
+  SPARKLE_MUTED_STROKE,
+  TABLER_SPARKLE_D,
+} from "../viz/wheel.js";
 import { applyAlbumHighlight, pickScrollFocusAlbum } from "../viz/highlight.js";
 import { scrollToAlbum, scrollToGlobal } from "./scroll-controller.js";
+
+function appendLegendSparkle(parent, color) {
+  const svg = parent
+    .append("svg")
+    .attr("class", "legend-sparkle")
+    .attr("width", 12)
+    .attr("height", 12)
+    .attr("viewBox", "0 0 24 24")
+    .attr("aria-hidden", "true");
+
+  const path = svg.append("path").attr("d", TABLER_SPARKLE_D).attr("fill", color);
+  if (isDarkAlbumColor(color)) {
+    path
+      .attr("stroke", SPARKLE_MUTED_STROKE)
+      .attr("stroke-width", 1.25)
+      .attr("stroke-linejoin", "round");
+  }
+}
 
 function isFilterMode() {
   const legend = document.getElementById("album-legend");
@@ -127,10 +150,7 @@ export function drawAlbumLegend(groupedData) {
     .on("click", (_event, album) => onLegendAlbumClick(album))
     .each(function (album) {
       const btn = d3.select(this);
-      btn
-        .append("span")
-        .attr("class", "legend-swatch")
-        .style("background", appState.albumColorScale(album));
+      appendLegendSparkle(btn, appState.albumColorScale(album));
       btn.append("span").attr("class", "legend-label").text(album);
     });
 }

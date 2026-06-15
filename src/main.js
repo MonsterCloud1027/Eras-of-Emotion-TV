@@ -13,6 +13,7 @@ import {
   buildAlbumColorScale,
   groupSongsByAlbum,
   loadData,
+  pickRepresentativeSongForGlobal,
 } from "./data/songs.js";
 import { appState } from "./state/app-state.js";
 import { drawAlbumLegend } from "./ui/legend.js";
@@ -50,7 +51,7 @@ async function init() {
     initSongDrilldown();
 
     if (appState.allSongs.length) {
-      updateDetailPanel(appState.allSongs[0]);
+      updateDetailPanel(pickRepresentativeSongForGlobal(appState.allSongs));
     }
   } catch (err) {
     console.error(err);

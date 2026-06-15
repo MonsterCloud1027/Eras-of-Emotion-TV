@@ -1,19 +1,25 @@
 import * as d3 from "d3";
 import { getAlbumKey } from "../data/songs.js";
 import { appState } from "../state/app-state.js";
-import { projectSongPosition, starPath } from "./wheel.js";
+import {
+  projectSongPosition,
+  sparkleTransform,
+  TABLER_SPARKLE_D,
+  STAR_GLOW_OPACITY_DEFAULT,
+  STAR_GLOW_OPACITY_HOVER,
+  STAR_GLOW_SCALE_DEFAULT,
+  STAR_GLOW_SCALE_HOVER,
+  applySparkleShapeStroke,
+} from "./wheel.js";
 
-const PATH_OPACITY_DEFAULT = 0.42;
-const PATH_OPACITY_ACTIVE = 0.78;
+const PATH_OPACITY_DEFAULT = 0.28;
+const PATH_OPACITY_ACTIVE = 0.52;
 const PATH_OPACITY_DIM = 0.07;
-const PATH_GLOW_OPACITY_ACTIVE = 0.38;
-const PATH_GLOW_OPACITY_ALBUM_VIEW = 0.34;
-const PATH_OPACITY_ALBUM_VIEW = 0.72;
+const PATH_GLOW_OPACITY_ACTIVE = 0.25;
+const PATH_GLOW_OPACITY_ALBUM_VIEW = 0.23;
+const PATH_OPACITY_ALBUM_VIEW = 0.48;
 const POINT_OPACITY_DEFAULT = 0.75;
 const POINT_OPACITY_DIM = 0.1;
-const STAR_GLOW_OPACITY = 0.42;
-const STAR_GLOW_OPACITY_ALBUM_VIEW = 0.58;
-const STAR_GLOW_OPACITY_HOVER = 0.62;
 
 /**
  * Which album owns the scroll stage (null = global).
@@ -151,15 +157,6 @@ export function refreshOverviewHighlight() {
     const dim = focusAlbum != null && album !== focusAlbum;
     const isHoveredStar =
       hoverAlbum && d.song_id === hoveredSongId && album === hoverAlbum;
-    const isAlbumViewStar =
-      layerType === "album" &&
-      scrollFocusAlbum != null &&
-      album === scrollFocusAlbum;
-    const isLegendFilterStar =
-      layerType === "global" &&
-      legendAlbum != null &&
-      album === legendAlbum &&
-      scrollFocusAlbum == null;
 
     el.classed("dimmed", dim);
     el.attr("opacity", dim ? POINT_OPACITY_DIM : POINT_OPACITY_DEFAULT);
@@ -174,32 +171,42 @@ export function refreshOverviewHighlight() {
       );
       const r = sizeScale(d.primary_score ?? 0);
       const scale = isHoveredStar ? 1.35 : 1;
+      el.classed("is-hovered", isHoveredStar);
       el.attr("transform", `translate(${cx},${cy}) scale(${scale})`);
 
       const glow = el.select(".song-star-glow");
       if (!glow.empty()) {
-        glow.attr("d", starPath(0, 0, r * 1.12));
-        let glowOp = STAR_GLOW_OPACITY;
-        if (isHoveredStar) {
-          glowOp = STAR_GLOW_OPACITY_HOVER;
-        } else if (isAlbumViewStar || isLegendFilterStar) {
-          glowOp = STAR_GLOW_OPACITY_ALBUM_VIEW;
-        }
-        glow.attr("opacity", glowOp);
-        const useFilter =
-          glowId &&
-          (isHoveredStar ||
-            isAlbumViewStar ||
-            isLegendFilterStar ||
-            glowOp > STAR_GLOW_OPACITY);
-        glow.attr("filter", useFilter ? `url(#${glowId})` : null);
+        const glowScale = isHoveredStar
+          ? STAR_GLOW_SCALE_HOVER
+          : STAR_GLOW_SCALE_DEFAULT;
+        glow
+          .attr("d", TABLER_SPARKLE_D)
+          .attr("transform", sparkleTransform(r * glowScale))
+          .attr("fill", appState.albumColorScale(album))
+          .attr(
+            "opacity",
+            isHoveredStar ? STAR_GLOW_OPACITY_HOVER : STAR_GLOW_OPACITY_DEFAULT
+          )
+          .attr("filter", glowId ? `url(#${glowId})` : null);
       }
       const shape = el.select(".song-star-shape");
-      if (!shape.empty()) shape.attr("d", starPath(0, 0, r));
+      if (!shape.empty()) {
+        const albumColor = appState.albumColorScale(album);
+        shape
+          .attr("d", TABLER_SPARKLE_D)
+          .attr("transform", sparkleTransform(r))
+          .attr("fill", albumColor);
+        applySparkleShapeStroke(shape, albumColor);
+      }
       const core = el.select(".song-star-core");
       if (!core.empty()) {
-        core.attr("d", starPath(0, 0, Math.max(1.2, r * 0.28)));
+        core
+          .attr("d", TABLER_SPARKLE_D)
+          .attr("transform", sparkleTransform(Math.max(1.2, r * 0.3)));
       }
+    } else {
+      el.classed("is-hovered", false);
+      el.select(".song-star-glow").attr("opacity", 0).attr("filter", null);
     }
   });
 }

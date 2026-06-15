@@ -93,6 +93,64 @@ export function starPath(cx, cy, outerR, innerRatio = 0.32, points = 4) {
   return `${d}Z`;
 }
 
+/** Tabler icon-tabler-sparkle (24×24); center (12,12), outer extent ≈ 9 from center. */
+export const TABLER_SPARKLE_D =
+  "M21 12c-6.597 0 -9 2.403 -9 9c0 -6.597 -2.403 -9 -9 -9c6.597 0 9 -2.403 9 -9c0 6.597 2.403 9 9 9";
+
+const TABLER_SPARKLE_CENTER = 12;
+const TABLER_SPARKLE_OUTER_R = 9;
+
+/** Parent g is translated to song position; sparkle centered at origin with radius outerR. */
+export function sparkleTransform(outerR) {
+  const s = Math.max(outerR, 1) / TABLER_SPARKLE_OUTER_R;
+  return `scale(${s}) translate(${-TABLER_SPARKLE_CENTER},${-TABLER_SPARKLE_CENTER})`;
+}
+
+export const STAR_GLOW_OPACITY_DEFAULT = 0.24;
+export const STAR_GLOW_OPACITY_HOVER = 0.48;
+export const STAR_GLOW_SCALE_DEFAULT = 1.22;
+export const STAR_GLOW_SCALE_HOVER = 1.32;
+
+const DARK_STROKE_LUMINANCE = 0.22;
+export const SPARKLE_MUTED_STROKE = "rgba(176, 170, 162, 0.92)";
+
+function parseHexColor(color) {
+  if (!color || typeof color !== "string") return null;
+  const m = color.trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (!m) return null;
+  let hex = m[1];
+  if (hex.length === 3) {
+    hex = hex
+      .split("")
+      .map((c) => c + c)
+      .join("");
+  }
+  return [
+    parseInt(hex.slice(0, 2), 16),
+    parseInt(hex.slice(2, 4), 16),
+    parseInt(hex.slice(4, 6), 16),
+  ];
+}
+
+export function isDarkAlbumColor(color) {
+  const rgb = parseHexColor(color);
+  if (!rgb) return false;
+  const [r, g, b] = rgb.map((v) => v / 255);
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return lum < DARK_STROKE_LUMINANCE;
+}
+
+/** Muted grey outline on dark album fills so sparkle icons stay visible on the wheel. */
+export function applySparkleShapeStroke(sel, color) {
+  const dark = isDarkAlbumColor(color);
+  sel.attr("stroke", dark ? SPARKLE_MUTED_STROKE : "none").attr(
+    "stroke-width",
+    dark ? 0.8 : null
+  );
+  if (dark) sel.attr("stroke-linejoin", "round");
+  else sel.attr("stroke-linejoin", null);
+}
+
 /** Even-odd donut path (outer circle minus inner hole). */
 export function donutPathD(centerX, centerY, outerRadius, innerRadius) {
   const outer = outerRadius;
@@ -301,15 +359,21 @@ export function ensureWheelDefs(svg, options) {
     const filter = defs
       .append("filter")
       .attr("id", glowId)
-      .attr("x", "-100%")
-      .attr("y", "-100%")
-      .attr("width", "300%")
-      .attr("height", "300%");
+      .attr("x", "-120%")
+      .attr("y", "-120%")
+      .attr("width", "340%")
+      .attr("height", "340%");
     filter
       .append("feGaussianBlur")
-      .attr("stdDeviation", "2")
+      .attr("stdDeviation", "2.2")
       .attr("result", "blur");
+    filter
+      .append("feGaussianBlur")
+      .attr("in", "blur")
+      .attr("stdDeviation", "3.2")
+      .attr("result", "wideBlur");
     const merge = filter.append("feMerge");
+    merge.append("feMergeNode").attr("in", "wideBlur");
     merge.append("feMergeNode").attr("in", "blur");
     merge.append("feMergeNode").attr("in", "SourceGraphic");
   }

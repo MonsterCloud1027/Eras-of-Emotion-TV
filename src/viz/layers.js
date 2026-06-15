@@ -8,7 +8,12 @@ import {
   dataIntensity,
   diamondPath,
   projectSongPosition,
-  starPath,
+  sparkleTransform,
+  TABLER_SPARKLE_D,
+  STAR_GLOW_OPACITY_DEFAULT,
+  STAR_GLOW_SCALE_DEFAULT,
+  applySparkleShapeStroke,
+  isDarkAlbumColor,
 } from "./wheel.js";
 
 const DARK_STROKE_LUMINANCE = 0.22;
@@ -32,12 +37,12 @@ function parseHexColor(color) {
   ];
 }
 
-function isDarkAlbumColor(color) {
+function brightenForFluorescent(color, mix = 0.55) {
   const rgb = parseHexColor(color);
-  if (!rgb) return false;
-  const [r, g, b] = rgb.map((v) => v / 255);
-  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return lum < DARK_STROKE_LUMINANCE;
+  if (!rgb) return color;
+  return `rgb(${rgb
+    .map((v) => Math.min(255, Math.round(v + (255 - v) * mix)))
+    .join(",")})`;
 }
 
 function pixelCoord(d, centerX, centerY, innerRadius, outerRadius) {
@@ -195,6 +200,20 @@ function pathXY(
   return [cx, cy];
 }
 
+function radialSegmentFromCenter(
+  song,
+  centerX,
+  centerY,
+  innerRadius,
+  outerRadius
+) {
+  const [x2, y2] = pathXY(song, centerX, centerY, innerRadius, outerRadius);
+  return [
+    [centerX, centerY],
+    [x2, y2],
+  ];
+}
+
 export function drawAlbumPaths(parentSel, groupedData, options) {
   const {
     centerX,
@@ -208,32 +227,22 @@ export function drawAlbumPaths(parentSel, groupedData, options) {
     strokeWidth = 2,
     glowStrokeWidth = 5,
     highlightAlbum = null,
-    routeAroundHole = true,
   } = options;
 
   const g = parentSel.append("g").attr("class", "constellation-paths");
   if (clipId) g.attr("clip-path", `url(#${clipId})`);
 
-  const line = d3
+  const radialLine = d3
     .line()
-    .x((d) => pathXY(d, centerX, centerY, innerRadius, outerRadius)[0])
-    .y((d) => pathXY(d, centerX, centerY, innerRadius, outerRadius)[1])
+    .x((d) => d[0])
+    .y((d) => d[1])
     .curve(d3.curveLinear);
 
   for (const [album, songs] of groupedData) {
-    if (songs.length < 2) continue;
+    if (songs.length === 0) continue;
     const color = appState.albumColorScale(album);
     const dimmed =
       highlightAlbum != null && highlightAlbum !== album ? " dimmed" : "";
-
-    const pathData = buildAlbumRingPathData(
-      songs,
-      centerX,
-      centerY,
-      innerRadius,
-      outerRadius,
-      routeAroundHole
-    );
 
     const albumG = g
       .append("g")
@@ -243,43 +252,47 @@ export function drawAlbumPaths(parentSel, groupedData, options) {
     const darkStroke = isDarkAlbumColor(color);
     const glowStroke = darkStroke ? DARK_PATH_OUTLINE : color;
 
-    if (darkStroke) {
+    const appendRadialPath = (className, stroke, width, pathOpacity) => {
       albumG
-        .append("path")
-        .attr("class", "constellation-path-outline" + dimmed)
+        .selectAll(`path.${className.split(" ")[0]}`)
+        .data(songs, (d) => d.song_id)
+        .join("path")
+        .attr("class", className)
         .attr("data-album", album)
-        .datum(pathData)
-        .attr("d", line)
+        .attr("d", (d) =>
+          radialLine(
+            radialSegmentFromCenter(
+              d,
+              centerX,
+              centerY,
+              innerRadius,
+              outerRadius
+            )
+          )
+        )
         .attr("fill", "none")
-        .attr("stroke", DARK_PATH_OUTLINE)
-        .attr("stroke-width", strokeWidth + 2.5)
+        .attr("stroke", stroke)
+        .attr("stroke-width", width)
         .attr("stroke-linecap", "round")
-        .attr("opacity", opacity);
+        .attr("opacity", pathOpacity);
+    };
+
+    if (darkStroke) {
+      appendRadialPath(
+        "constellation-path-outline" + dimmed,
+        DARK_PATH_OUTLINE,
+        strokeWidth + 2.5,
+        opacity
+      );
     }
 
-    albumG
-      .append("path")
-      .attr("class", "constellation-path-glow" + dimmed)
-      .attr("data-album", album)
-      .datum(pathData)
-      .attr("d", line)
-      .attr("fill", "none")
-      .attr("stroke", glowStroke)
-      .attr("stroke-width", glowStrokeWidth)
-      .attr("stroke-linecap", "round")
-      .attr("opacity", 0);
-
-    albumG
-      .append("path")
-      .attr("class", pathClass + dimmed)
-      .attr("data-album", album)
-      .datum(pathData)
-      .attr("d", line)
-      .attr("fill", "none")
-      .attr("stroke", color)
-      .attr("stroke-width", strokeWidth)
-      .attr("stroke-linecap", "round")
-      .attr("opacity", opacity);
+    appendRadialPath(
+      "constellation-path-glow" + dimmed,
+      glowStroke,
+      glowStrokeWidth,
+      0
+    );
+    appendRadialPath(pathClass + dimmed, color, strokeWidth, opacity);
   }
 
   return g;
@@ -295,10 +308,9 @@ export function renderStarShapes(
   sizeScale,
   glowId,
   hoverScale = 1,
-  showGlow = true,
+  showGlow = false,
   fillColor = null
 ) {
-  const STAR_GLOW_OPACITY = 0.42;
   const { cx, cy } = projectSongPosition(
     d,
     centerX,
@@ -308,7 +320,6 @@ export function renderStarShapes(
   );
   const r = sizeScale(d.primary_score ?? 0);
   const color = fillColor ?? appState.albumColorScale(getAlbumKey(d));
-  const darkFill = isDarkAlbumColor(color);
   const g = d3.select(node);
 
   g.attr("transform", `translate(${cx},${cy}) scale(${hoverScale})`);
@@ -318,31 +329,31 @@ export function renderStarShapes(
     glow = g.append("path").attr("class", "song-star-glow");
   }
   glow
-    .attr("d", starPath(0, 0, r * 1.12))
-    .attr("fill", darkFill ? DARK_PATH_OUTLINE : color)
-    .attr("opacity", showGlow ? STAR_GLOW_OPACITY : 0)
-    .attr("filter", showGlow && glowId ? `url(#${glowId})` : null);
+    .attr("d", TABLER_SPARKLE_D)
+    .attr("transform", sparkleTransform(r * STAR_GLOW_SCALE_DEFAULT))
+    .attr("fill", color)
+    .attr("opacity", STAR_GLOW_OPACITY_DEFAULT)
+    .attr("filter", glowId ? `url(#${glowId})` : null);
 
   let shape = g.select(".song-star-shape");
   if (shape.empty()) {
-    shape = g
-      .append("path")
-      .attr("class", "song-star-shape")
-      .attr("stroke-linejoin", "round");
+    shape = g.append("path").attr("class", "song-star-shape");
   }
   shape
-    .attr("d", starPath(0, 0, r))
-    .attr("fill", color)
-    .attr("stroke", darkFill ? DARK_PATH_OUTLINE : "#fffdf9")
-    .attr("stroke-width", darkFill ? 1.15 : 0.65);
+    .attr("d", TABLER_SPARKLE_D)
+    .attr("transform", sparkleTransform(r))
+    .attr("fill", color);
+  applySparkleShapeStroke(shape, color);
 
   let core = g.select(".song-star-core");
   if (core.empty()) {
     core = g.append("path").attr("class", "song-star-core");
   }
   core
-    .attr("d", starPath(0, 0, Math.max(1.2, r * 0.28)))
-    .attr("fill", "#fffdf9")
+    .attr("d", TABLER_SPARKLE_D)
+    .attr("transform", sparkleTransform(Math.max(1.2, r * 0.3)))
+    .attr("fill", brightenForFluorescent(color, 0.32))
+    .attr("opacity", 0.72)
     .attr("stroke", "none");
 }
 
@@ -433,7 +444,7 @@ export function drawSongPoints(parentSel, data, options) {
         sizeScale,
         glowId,
         1,
-        true
+        false
       );
     });
 

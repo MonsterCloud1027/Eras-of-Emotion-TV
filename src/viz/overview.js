@@ -45,7 +45,7 @@ export function drawGalaxyOverview(data) {
     idPrefix,
   });
 
-  const pathOpacity = 0.42;
+  const pathOpacity = 0.28;
 
   const pathsG = drawAlbumPaths(svg, grouped, {
     centerX,

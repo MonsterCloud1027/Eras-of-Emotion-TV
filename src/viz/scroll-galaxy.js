@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import { getAlbumLogoUrl } from "../config/album-logos.js";
-import { groupSongsByAlbum } from "../data/songs.js";
+import { groupSongsByAlbum, pickRepresentativeSongForAlbum, pickRepresentativeSongForGlobal } from "../data/songs.js";
 import { appState } from "../state/app-state.js";
 import { updateLegendFromScroll } from "../ui/legend.js";
 import { updateDetailPanel } from "../ui/panel.js";
@@ -9,7 +9,7 @@ import {
   refreshOverviewHighlight,
   updateScrollFocusHighlight,
 } from "./highlight.js";
-import { handleSongDblClick } from "./song-drilldown.js";
+import { handleSongDblClick, isSongDrilldownActive } from "./song-drilldown.js";
 import { drawAlbumPaths, drawSongPoints } from "./layers.js";
 import {
   GLOBAL_CENTER_IMAGE,
@@ -111,7 +111,7 @@ export function drawScrollGalaxy(data) {
   });
 
   const grouped = groupSongsByAlbum(data);
-  const pathOpacity = 0.42;
+  const pathOpacity = 0.28;
   const defaultOpacity = 0.75;
   const pathOpts = {
     centerX,
@@ -222,14 +222,29 @@ export function drawScrollGalaxy(data) {
   refreshOverviewHighlight();
 }
 
+function syncDetailPanelToScrollFocus(prevAlbum, nextAlbum, globalOp) {
+  if (isSongDrilldownActive()) return;
+  if (prevAlbum === nextAlbum) return;
+
+  let song = null;
+  if (nextAlbum != null) {
+    song = pickRepresentativeSongForAlbum(nextAlbum);
+  } else if (globalOp > 0.12) {
+    song = pickRepresentativeSongForGlobal();
+  }
+
+  if (song) updateDetailPanel(song);
+}
+
 export function setContentLayerOpacities(opacityByKey) {
   const layers = appState.overviewLayers;
   if (!layers) return;
 
-  const gOp = opacityByKey.global ?? 0;
+  const prevScrollAlbum = appState.scrollFocusAlbum;
+  const globalOp = opacityByKey.global ?? 0;
   layers.globalLayer
-    .attr("opacity", gOp)
-    .style("pointer-events", gOp > 0.08 ? "all" : "none");
+    .attr("opacity", globalOp)
+    .style("pointer-events", globalOp > 0.08 ? "all" : "none");
 
   for (const [album, { layer }] of layers.albumLayers) {
     const op = opacityByKey[album] ?? 0;
@@ -240,12 +255,12 @@ export function setContentLayerOpacities(opacityByKey) {
 
   const frame = document.querySelector(".overview-viz-frame");
   if (frame) {
-    frame.classList.toggle("show-global-era", gOp > 0.08);
+    frame.classList.toggle("show-global-era", globalOp > 0.08);
   }
 
   const vizWrap = document.querySelector(".overview-viz-wrap");
   if (vizWrap) {
-    const isGlobalView = gOp > 0.08;
+    const isGlobalView = globalOp > 0.08;
     const wasGlobalView = vizWrap.classList.contains("is-global-view");
     vizWrap.classList.toggle("is-global-view", isGlobalView);
     if (wasGlobalView && !isGlobalView && appState.selectedAlbumHighlight != null) {
@@ -256,7 +271,7 @@ export function setContentLayerOpacities(opacityByKey) {
   if (layers.centerImagesG) {
     layers.centerImagesG
       .select("image.center-global-era")
-      .attr("opacity", gOp);
+      .attr("opacity", globalOp);
 
     layers.centerImagesG.selectAll("image.center-album-logo").each(function () {
       const album = d3.select(this).attr("data-album");
@@ -266,5 +281,10 @@ export function setContentLayerOpacities(opacityByKey) {
   }
 
   updateScrollFocusHighlight(opacityByKey, layers.albumOrder ?? []);
+  syncDetailPanelToScrollFocus(
+    prevScrollAlbum,
+    appState.scrollFocusAlbum,
+    globalOp
+  );
   updateLegendFromScroll(opacityByKey, layers.albumOrder ?? []);
 }
