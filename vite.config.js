@@ -73,6 +73,7 @@ export default defineConfig({
       input: {
         main: path.resolve(rootDir, "index.html"),
         lyricalThemes: path.resolve(rootDir, "lyrical-themes.html"),
+        lyricalPatterns: path.resolve(rootDir, "lyrical-patterns.html"),
       },
     },
   },

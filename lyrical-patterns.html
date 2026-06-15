@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="description" content="Evolution of lyrical patterns across Taylor Swift albums." />
+  <title>Lyrical Patterns | Eras of Emotion</title>
+</head>
+<body class="lyrical-page">
+  <nav id="site-nav" class="site-nav" aria-label="Site"></nav>
+
+  <header class="lyrical-page__hero">
+    <h1>Lyrical Patterns Across Multiple Styles </h1>
+    <p>Lyrical complexity, style &amp; signature words across albums</p>
+  </header>
+
+  <main class="lyrical-page__main">
+    <div id="q8" class="section">
+      <div class="section-title">Lyrical Patterns Across Musical Styles</div>
+      <div class="section-desc">Heatmap of stylistic features across all eras. Values scale by lightness using a distinct hue for each era (Dark = High, Light = Low). Hover over any cell for details.</div>
+
+      <div class="legend" id="heatmap-legend"></div>
+      <div class="chart-container"><svg id="chart-q8"></svg></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Lyrical patterns heatmap &mdash; stylistic features across all eras.</p>
+  </footer>
+
+  <div id="tooltip"></div>
+
+  <script type="module" src="/src/lyrical-patterns/main.js"></script>
+</body>
+</html>
+

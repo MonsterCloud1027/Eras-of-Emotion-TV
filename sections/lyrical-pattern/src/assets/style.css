@@ -1,0 +1,89 @@
+
+
+.section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 36px 24px;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: #e8d5b0;
+  margin-bottom: 6px;
+}
+
+.section-desc {
+  color: #666;
+  font-size: 0.85rem;
+  margin-bottom: 28px;
+  line-height: 1.7;
+  max-width: 800px;
+}
+
+
+#tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: #1a1a1a;
+  border: 1px solid #c9a96e;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  color: #e8d5b0;
+  max-width: 220px;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.2s;
+  line-height: 1.6;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+#tooltip.visible {
+  opacity: 1;
+}
+
+#tooltip strong {
+  color: #c9a96e;
+  font-size: 0.85rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+svg text {
+  font-family: 'Inter', sans-serif;
+}
+
+.chart-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+
+.legend {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  color: #999;
+}
+
+.legend-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}

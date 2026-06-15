@@ -19,6 +19,13 @@ export const NAV_ITEMS = [
     description: "Album emotion treemap",
     href: "lyrical-themes.html",
   },
+    {
+    id: "lyrical-patterns",
+    label: "Lyrical Patterns",
+    shortLabel: "Patterns",
+    description: "Album emotion patterns",
+    href: "lyrical-patterns.html",
+  },
   ...Array.from({ length: PLACEHOLDER_COUNT }, (_, index) => ({
     id: `other-vis-${index + 1}`,
     label: "Other Vis",
