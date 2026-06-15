@@ -1,0 +1,118 @@
+/* Lyrical themes treemap page */
+
+.lyrical-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--site-nav-height));
+}
+
+.lyrical-page__hero {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 1.25rem;
+  text-align: center;
+}
+
+.lyrical-page__hero h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 3.5vw, 2.15rem);
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+.lyrical-page__hero p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.lyrical-page__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1.5rem 2rem;
+}
+
+.lyrical-page__panel {
+  padding: 1.25rem 1.5rem;
+}
+
+.lyrical-album-timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.lyrical-album-btn {
+  padding: 0.45rem 0.85rem;
+  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  outline: 0;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.lyrical-album-btn:hover {
+  border-color: var(--ring);
+  background: #fff;
+}
+
+.lyrical-album-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.lyrical-graph-wrap {
+  width: 100%;
+}
+
+.lyrical-graph-wrap .graph {
+  width: 100%;
+}
+
+.lyrical-graph-wrap .treemap-svg {
+  display: block;
+}
+
+.lyrical-graph-wrap .cell-label {
+  pointer-events: none;
+  font-family: var(--font-serif);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  text-transform: capitalize;
+}
+
+.lyrical-graph-wrap .cell-pct {
+  pointer-events: none;
+  font-family: var(--font-sans);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.lyrical-page .tooltip {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  padding: 0.5rem 0.75rem;
+  background: rgba(44, 36, 22, 0.92);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  border-radius: 8px;
+  display: none;
+}

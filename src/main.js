@@ -2,8 +2,10 @@
  * Taylor Swift Lyrics Emotion Galaxy — entry
  */
 import "./styles/main.css";
+import "./styles/nav.css";
 
 import * as d3 from "d3";
+import { initSiteNav } from "./ui/site-nav.js";
 import { loadSectionWheelBySong } from "./data/section-wheel.js";
 import { loadSectionsBySong } from "./data/sections.js";
 import { buildSectionTypeColorScale } from "./config/section-type-colors.js";
@@ -24,6 +26,8 @@ import { initSongDrilldown } from "./viz/song-drilldown.js";
 import { drawScrollGalaxy } from "./viz/scroll-galaxy.js";
 
 async function init() {
+  initSiteNav("galaxy");
+
   try {
     const [songs, sectionsBySong, sectionWheelBySong] = await Promise.all([
       loadData(),

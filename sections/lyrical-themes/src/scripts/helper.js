@@ -1,5 +1,7 @@
 'use strict'
 
+import * as d3 from 'd3'
+
 /**
  * Generates the SVG g element that will contain the treemap.
  *
@@ -34,10 +36,10 @@ export function setCanvasSize (width, height) {
  */
 export function buildTimeline (albums, onSelect) {
   d3.select('#album-timeline')
-    .selectAll('.album-btn')
+    .selectAll('.lyrical-album-btn')
     .data(albums)
     .join('button')
-    .attr('class', 'album-btn')
+    .attr('class', 'lyrical-album-btn')
     .attr('id', d => `btn-${d.replace(/\s+/g, '-')}`)
     .text(d => d === 'The Tortured Poets Department' ? 'TTPD' : d)
     .attr('title', d => d)
@@ -50,6 +52,6 @@ export function buildTimeline (albums, onSelect) {
  * @param {string} album The album name to activate
  */
 export function setActiveButton (album) {
-  d3.selectAll('.album-btn')
+  d3.selectAll('.lyrical-album-btn')
     .classed('active', d => d === album)
 }

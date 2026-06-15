@@ -1,30 +1,63 @@
 <!doctype html>
-<html>
+<html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="Description" content="Evolution of lyrical themes across Taylor Swift albums.">
-        <title>Lyrical Themes | INF8808</title>
-
-        <link rel="stylesheet" href="assets/style.css">
-        <link rel="stylesheet" href="assets/typography.css">
+        <title>Lyrical Themes | Eras of Emotion</title>
     </head>
 
-    <body>
-        <header>
+    <body class="lyrical-page">
+        <nav class="site-nav" aria-label="Site">
+            <div class="site-nav__inner">
+                <a class="site-nav__brand" href="../../../index.html">
+                    <span class="site-nav__brand-eyebrow">Eras of Emotion</span>
+                    <span class="site-nav__brand-title">Taylor's Version</span>
+                </a>
+                <div class="site-nav__links" role="navigation" aria-label="Visualizations">
+                    <a class="site-nav__link" href="../../../index.html" title="Radial Plutchik wheel">
+                        <span class="site-nav__link-label">Emotion Galaxy</span>
+                        <span class="site-nav__link-short">Galaxy</span>
+                    </a>
+                    <a class="site-nav__link is-active" href="./index.html" aria-current="page" title="Album emotion treemap">
+                        <span class="site-nav__link-label">Lyrical Themes</span>
+                        <span class="site-nav__link-short">Themes</span>
+                    </a>
+                    <span class="site-nav__link">
+                        <span class="site-nav__link-label">Other Vis</span>
+                        <span class="site-nav__link-short">Other</span>
+                    </span>
+                    <span class="site-nav__link">
+                        <span class="site-nav__link-label">Other Vis</span>
+                        <span class="site-nav__link-short">Other</span>
+                    </span>
+                    <span class="site-nav__link">
+                        <span class="site-nav__link-label">Other Vis</span>
+                        <span class="site-nav__link-short">Other</span>
+                    </span>
+                </div>
+            </div>
+        </nav>
+
+        <header class="lyrical-page__hero">
             <h1>Evolution of Lyrical Themes</h1>
-            <h2>Emotional palette across Taylor Swift albums</h2>
+            <p>Emotional palette across Taylor Swift albums</p>
         </header>
-        <main>
-            <nav id="album-timeline" class="album-timeline"></nav>
-            <div class="viz-container">
+
+        <main class="lyrical-page__main">
+            <nav id="album-timeline" class="lyrical-album-timeline" aria-label="Album timeline"></nav>
+            <div class="lyrical-page__panel card lyrical-graph-wrap">
                 <div class="graph" id="treemap">
                     <svg class="treemap-svg"></svg>
                 </div>
             </div>
         </main>
+
+        <footer class="site-footer">
+            <p>Album-level emotion treemap &mdash; area reflects each emotion's share.</p>
+        </footer>
+
         <div id="tooltip" class="tooltip"></div>
-        <script src="https://d3js.org/d3.v7.js"></script>
-        <script type="module" src="index.js"></script>
+        <script type="module" src="standalone.js"></script>
     </body>
 </html>

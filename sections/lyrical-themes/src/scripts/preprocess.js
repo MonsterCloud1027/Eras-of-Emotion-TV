@@ -1,5 +1,7 @@
 'use strict'
 
+import * as d3 from 'd3'
+
 const ALBUM_ORDER = [
   'Taylor Swift',
   'Fearless',

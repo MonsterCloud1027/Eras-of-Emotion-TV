@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import * as helper from "./scripts/helper.js";
 import * as preproc from "./scripts/preprocess.js";
 import * as viz from "./scripts/viz.js";
@@ -8,7 +9,13 @@ import * as hover from "./scripts/hover.js";
 /**
  * @file Entry point for the lyrical themes treemap visualization.
  */
-(function (d3) {
+
+/**
+ * Initializes the lyrical themes treemap.
+ *
+ * @param {string} dataUrl URL to the song emotion wheel JSON
+ */
+export function initLyricalThemes(dataUrl) {
   let svgSize;
   let graphSize;
   let currentAlbum;
@@ -17,11 +24,10 @@ import * as hover from "./scripts/hover.js";
   const margin = { top: 10, right: 10, bottom: 10, left: 10 };
   const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
-  d3.json("song_emotion_wheel_data.llm.json").then(function (data) {
+  d3.json(dataUrl).then(function (data) {
     const albumData = preproc.buildAlbumEmotionData(data);
     const albums = preproc.getAlbumOrder(albumData);
 
-    // Mean scores are used once to build the stable base layout
     meanScores = preproc.buildMeanEmotionData(albumData);
 
     colorScale.domain(preproc.getEmotions(albumData));
@@ -33,13 +39,9 @@ import * as hover from "./scripts/hover.js";
 
     setSizing();
 
-    // Compute stable base layout from mean scores (sets d.z for resquarify)
     viz.initBaseLayout(meanScores, graphSize.width, graphSize.height);
     selectAlbum(albums[0], false);
 
-    /**
-     * Handles sizing of the SVG canvas.
-     */
     function setSizing() {
       const bounds = d3.select(".graph").node().getBoundingClientRect();
 
@@ -56,12 +58,6 @@ import * as hover from "./scripts/hover.js";
       helper.setCanvasSize(svgSize.width, svgSize.height);
     }
 
-    /**
-     * Selects an album and updates the treemap.
-     *
-     * @param {string} album The album name to display
-     * @param {boolean} animated Whether to animate the transition
-     */
     function selectAlbum(album, animated = true) {
       currentAlbum = album;
       helper.setActiveButton(album);
@@ -76,7 +72,6 @@ import * as hover from "./scripts/hover.js";
 
     window.addEventListener("resize", () => {
       setSizing();
-      // Rebuild base layout at new size, then re-render current album
       viz.resetLayout(meanScores, graphSize.width, graphSize.height);
       viz.update(
         albumData[currentAlbum],
@@ -87,4 +82,4 @@ import * as hover from "./scripts/hover.js";
       );
     });
   });
-})(d3);
+}

@@ -87,7 +87,7 @@ body {
 
 .scroll-stage__sticky {
   position: sticky;
-  top: 0;
+  top: var(--site-nav-height, 0);
   z-index: 20;
   height: 100vh;
   display: flex;
