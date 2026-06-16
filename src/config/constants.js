@@ -8,6 +8,7 @@ export function assetUrl(path) {
 
 /** LLM-scored song wheel (default viz) */
 export const DATA_URL = assetUrl("data/song_emotion_wheel_data.llm.json");
+export const PROCESSED_LYRICAL_THEMES_URL = assetUrl("data/processed_lyrical_themes.llm.json");
 /** NRCLex test scores (preserved separately) */
 export const DATA_URL_TEST = assetUrl("data/song_emotion_wheel_data.test.json");
 export const SECTION_DATA_URL = assetUrl(

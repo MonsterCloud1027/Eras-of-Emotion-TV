@@ -4,6 +4,14 @@ import * as d3 from "d3";
 
 const tooltip = d3.select("#tooltip");
 
+// From the PCA analysis, see the explore2 notebook
+const top_emotions_composition = {
+  "Heartbreak": ["Sadness", "Anger", "Fear"],
+  "Romantic optimism": ["Joy", "Anticipation", "Trust"],
+  "Vengeance": ["Anger", "Disgust"],
+  "Anxiety": ["Fear", "Anticipation"]
+};
+
 /**
  * Initializes the tooltip element.
  */
@@ -18,10 +26,13 @@ export function initTooltip() {
  * @param {object} d The treemap leaf node datum
  */
 export function showTooltip(event, d) {
+  const emotions = top_emotions_composition[d.data.name];
+  const emotionText = emotions ? `<span>${emotions.join(", ")}</span>` : "";
+
   tooltip
     .style("display", "block")
     .html(
-      `<strong>${d.data.name}</strong><br>avg: ${d.data.value.toFixed(3)} ${(d.data.pct * 100).toFixed(1)}%`,
+      emotionText
     );
   moveTooltip(event);
 }

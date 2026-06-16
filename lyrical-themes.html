@@ -4,29 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <meta name="description" content="Evolution of lyrical themes across Taylor Swift albums." />
-  <title>Lyrical Themes | Eras of Emotion</title>
+  <title>Lyrical themes</title>
 </head>
 <body class="lyrical-page">
   <nav id="site-nav" class="site-nav" aria-label="Site"></nav>
 
   <header class="lyrical-page__hero">
-    <h1>Evolution of Lyrical Themes</h1>
-    <p>Emotional palette across Taylor Swift albums</p>
+    <h1>Evolution of the lyrical themes</h1>
+    <p>We used principal component analysis on the emotions, in order to exctract four main lyrical themes.</p>
+    <p>Hover over the lyrical themes to learn more about which emotions they represent</p>
   </header>
 
   <main class="lyrical-page__main">
     <nav id="album-timeline" class="lyrical-album-timeline" aria-label="Album timeline"></nav>
-    <div class="lyrical-page__panel card lyrical-graph-wrap">
+    <div class="lyrical-page__panel lyrical-graph-wrap">
       <div class="graph" id="treemap">
         <svg class="treemap-svg"></svg>
       </div>
     </div>
   </main>
-
-  <footer class="site-footer">
-    <p>Album-level emotion treemap &mdash; area reflects each emotion's share.</p>
-  </footer>
 
   <div id="tooltip" class="tooltip"></div>
 

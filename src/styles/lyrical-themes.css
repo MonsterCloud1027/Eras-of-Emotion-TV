@@ -93,7 +93,6 @@
   font-family: var(--font-serif);
   text-anchor: middle;
   dominant-baseline: middle;
-  text-transform: capitalize;
 }
 
 .lyrical-graph-wrap .cell-pct {

@@ -17,7 +17,7 @@ const ALBUM_ORDER = [
   'The Life Of A Showgirl'
 ]
 
-const EMOTIONS = ['joy', 'trust', 'fear', 'surprise', 'sadness', 'disgust', 'anger', 'anticipation']
+const THEMES = ['Heartbreak', 'Romantic optimism', 'Vengeance', 'Anxiety']
 
 /**
  * Aggregates song data into per-album average emotion scores.
@@ -34,8 +34,8 @@ export function buildAlbumEmotionData (songs) {
     if (!albumSongs) return
 
     const scores = {}
-    EMOTIONS.forEach(emotion => {
-      scores[emotion] = d3.mean(albumSongs, s => (s.emotion_scores_mean || {})[emotion] || 0)
+    THEMES.forEach(theme => {
+      scores[theme] = d3.mean(albumSongs, s => (s.theme_scores || {})[theme] || 0)
     })
     result[album] = scores
   })
@@ -63,7 +63,7 @@ export function getAlbumOrder (albumData) {
 export function buildMeanEmotionData (albumData) {
   const albums = Object.values(albumData)
   const result = {}
-  EMOTIONS.forEach(emotion => {
+  THEMES.forEach(emotion => {
     result[emotion] = d3.mean(albums, a => a[emotion] || 0)
   })
   return result
@@ -90,7 +90,7 @@ export function buildHierarchy (emotionScores) {
   const total = d3.sum(Object.values(emotionScores))
   return d3.hierarchy({
     name: 'root',
-    children: EMOTIONS.map(name => ({
+    children: THEMES.map(name => ({
       name,
       value: emotionScores[name] || 0,
       pct: total > 0 ? (emotionScores[name] || 0) / total : 0
