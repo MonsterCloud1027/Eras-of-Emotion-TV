@@ -221,6 +221,27 @@ function rebuildDetailMeta(panel, rows) {
   });
 }
 
+/** Keep song-detail blocks in a stable visual order after incremental DOM updates. */
+function normalizeSongDetailOrder(panel) {
+  const root = panel.node();
+  if (!root) return;
+
+  const selectors = [
+    "h3",
+    ".detail-title",
+    ".detail-album",
+    ".detail-meta",
+    ".detail-lyrics",
+    ".detail-scores",
+    ".detail-drill-hint",
+  ];
+
+  for (const selector of selectors) {
+    const el = root.querySelector(selector);
+    if (el) root.appendChild(el);
+  }
+}
+
 export function updateDetailPanel(song) {
   const panel = d3.select("#detail-panel");
 
@@ -264,4 +285,6 @@ export function updateDetailPanel(song) {
     .append("p")
     .attr("class", "detail-drill-hint")
     .text("Double-click this song on the wheel to explore its sections.");
+
+  normalizeSongDetailOrder(panel);
 }

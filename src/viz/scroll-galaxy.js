@@ -23,6 +23,51 @@ import {
   getInnerRadius,
 } from "./wheel.js";
 
+const CENTER_LOGO_ROTATE_DEG = 80;
+
+/** Rotation tracks scroll progress (0→1 per step), independent of opacity crossfade. */
+function centerLogoRotation(stepT, role) {
+  if (role == null || stepT == null) return 0;
+  const t = Math.max(0, Math.min(1, stepT));
+  if (role === "outgoing") return -t * CENTER_LOGO_ROTATE_DEG;
+  if (role === "incoming") return (1 - t) * CENTER_LOGO_ROTATE_DEG;
+  return 0;
+}
+
+function appendCenterLogoWrap(parent, options) {
+  const {
+    layerKey,
+    imageClass,
+    href,
+    ix,
+    iy,
+    imageSize,
+    initialOpacity,
+  } = options;
+
+  const wrap = parent
+    .append("g")
+    .attr("class", `center-logo-wrap center-logo-wrap--${layerKey === "global" ? "global" : "album"}`)
+    .attr("data-layer-key", layerKey)
+    .attr("opacity", initialOpacity);
+
+  if (layerKey !== "global") {
+    wrap.attr("data-album", layerKey);
+  }
+
+  wrap
+    .append("image")
+    .attr("class", imageClass)
+    .attr("href", href)
+    .attr("x", ix)
+    .attr("y", iy)
+    .attr("width", imageSize)
+    .attr("height", imageSize)
+    .attr("preserveAspectRatio", "xMidYMid meet");
+
+  return wrap;
+}
+
 function drawCenterWheelImages(svg, options) {
   const { centerX, centerY, wheelRadius, albumOrder, idPrefix } = options;
   const innerRadius = getInnerRadius(wheelRadius);
@@ -50,34 +95,31 @@ function drawCenterWheelImages(svg, options) {
     .attr("class", "center-wheel-images")
     .attr("clip-path", `url(#${clipId})`);
 
-  centerG
-    .append("image")
-    .attr("class", "center-global-era")
-    .attr("href", GLOBAL_CENTER_IMAGE)
-    .attr("x", ix)
-    .attr("y", iy)
-    .attr("width", imageSize)
-    .attr("height", imageSize)
-    .attr("opacity", 1)
-    .attr("preserveAspectRatio", "xMidYMid meet");
+  appendCenterLogoWrap(centerG, {
+    layerKey: "global",
+    imageClass: "center-global-era",
+    href: GLOBAL_CENTER_IMAGE,
+    ix,
+    iy,
+    imageSize,
+    initialOpacity: 1,
+  });
 
   const entries = albumOrder
     .map((album) => ({ album, href: getAlbumLogoUrl(album) }))
     .filter((d) => d.href);
 
-  centerG
-    .selectAll("image.center-album-logo")
-    .data(entries, (d) => d.album)
-    .join("image")
-    .attr("class", "center-album-logo")
-    .attr("data-album", (d) => d.album)
-    .attr("href", (d) => d.href)
-    .attr("x", ix)
-    .attr("y", iy)
-    .attr("width", imageSize)
-    .attr("height", imageSize)
-    .attr("opacity", 0)
-    .attr("preserveAspectRatio", "xMidYMid meet");
+  entries.forEach(({ album, href }) => {
+    appendCenterLogoWrap(centerG, {
+      layerKey: album,
+      imageClass: "center-album-logo",
+      href,
+      ix,
+      iy,
+      imageSize,
+      initialOpacity: 0,
+    });
+  });
 
   return centerG;
 }
@@ -236,7 +278,31 @@ function syncDetailPanelToScrollFocus(prevAlbum, nextAlbum, globalOp) {
   if (song) updateDetailPanel(song);
 }
 
-export function setContentLayerOpacities(opacityByKey) {
+function applyCenterLogoVisuals(layers, opacityByKey, crossfade = {}) {
+  const { centerImagesG, centerX, centerY } = layers;
+  if (!centerImagesG) return;
+
+  const { outgoingKey = null, incomingKey = null, stepT = null } = crossfade;
+
+  const applyWrap = (wrap, layerKey) => {
+    const opacity = opacityByKey[layerKey] ?? 0;
+    let role = null;
+    if (layerKey === outgoingKey) role = "outgoing";
+    else if (layerKey === incomingKey) role = "incoming";
+    const angle = centerLogoRotation(stepT, role);
+    wrap
+      .attr("opacity", opacity)
+      .attr("transform", `rotate(${angle} ${centerX} ${centerY})`);
+  };
+
+  applyWrap(centerImagesG.select(".center-logo-wrap--global"), "global");
+  centerImagesG.selectAll(".center-logo-wrap--album").each(function () {
+    const album = d3.select(this).attr("data-album");
+    applyWrap(d3.select(this), album);
+  });
+}
+
+export function setContentLayerOpacities(opacityByKey, crossfade = {}) {
   const layers = appState.overviewLayers;
   if (!layers) return;
 
@@ -269,15 +335,7 @@ export function setContentLayerOpacities(opacityByKey) {
   }
 
   if (layers.centerImagesG) {
-    layers.centerImagesG
-      .select("image.center-global-era")
-      .attr("opacity", globalOp);
-
-    layers.centerImagesG.selectAll("image.center-album-logo").each(function () {
-      const album = d3.select(this).attr("data-album");
-      const op = opacityByKey[album] ?? 0;
-      d3.select(this).attr("opacity", op);
-    });
+    applyCenterLogoVisuals(layers, opacityByKey, crossfade);
   }
 
   updateScrollFocusHighlight(opacityByKey, layers.albumOrder ?? []);

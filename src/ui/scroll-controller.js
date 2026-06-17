@@ -26,29 +26,43 @@ function smoothstep(t) {
   return x * x * (3 - 2 * x);
 }
 
-/** Outgoing layer: mostly gone in the first ~40% of the step. */
+/**
+ * Crossfade only in the middle band of each scroll step; holds full opacity on
+ * either side so albums stay solid longer between transitions.
+ */
+const CROSSFADE_START = 0.30;
+const CROSSFADE_END = 0.70;
+
 function crossfadeOutgoing(t) {
   const x = Math.max(0, Math.min(1, t));
-  return Math.max(0, 1 - x * 2.5);
+  if (x <= CROSSFADE_START) return 1;
+  if (x >= CROSSFADE_END) return 0;
+  return 1 - smoothstep((x - CROSSFADE_START) / (CROSSFADE_END - CROSSFADE_START));
 }
 
-/** Incoming layer: rises after a short hold so the previous can clear first. */
 function crossfadeIncoming(t) {
   const x = Math.max(0, Math.min(1, t));
-  if (x < 0.15) return 0;
-  return smoothstep((x - 0.15) / 0.85);
+  if (x <= CROSSFADE_START) return 0;
+  if (x >= CROSSFADE_END) return 1;
+  return smoothstep((x - CROSSFADE_START) / (CROSSFADE_END - CROSSFADE_START));
+}
+
+/** stepFloat that lands in the incoming album's solid hold (or global at step 0). */
+function scrollSnapStepFloat(stepIndex) {
+  if (stepIndex <= 0) return CROSSFADE_START * 0.25;
+  return (stepIndex - 1) + (CROSSFADE_END + 1) / 2;
 }
 
 /** Opacity crossfade: step 0 = global grid, then one step per album cover. */
 export function computeScrollOpacities(stepFloat, albumOrder) {
-  const op = { global: 0 };
+  const opacityByKey = { global: 0 };
   albumOrder.forEach((a) => {
-    op[a] = 0;
+    opacityByKey[a] = 0;
   });
 
   if (!albumOrder.length) {
-    op.global = 1;
-    return op;
+    opacityByKey.global = 1;
+    return { opacityByKey, outgoingKey: null, incomingKey: null, stepT: null };
   }
 
   const i = Math.floor(stepFloat);
@@ -57,16 +71,29 @@ export function computeScrollOpacities(stepFloat, albumOrder) {
   const inn = crossfadeIncoming(t);
 
   if (i <= 0) {
-    op.global = out;
-    op[albumOrder[0]] = inn;
-  } else if (i >= albumOrder.length) {
-    op[albumOrder[albumOrder.length - 1]] = 1;
-  } else {
-    op[albumOrder[i - 1]] = out;
-    op[albumOrder[i]] = inn;
+    opacityByKey.global = out;
+    opacityByKey[albumOrder[0]] = inn;
+    return {
+      opacityByKey,
+      outgoingKey: "global",
+      incomingKey: albumOrder[0],
+      stepT: t,
+    };
   }
 
-  return op;
+  if (i >= albumOrder.length) {
+    opacityByKey[albumOrder[albumOrder.length - 1]] = 1;
+    return { opacityByKey, outgoingKey: null, incomingKey: null, stepT: null };
+  }
+
+  opacityByKey[albumOrder[i - 1]] = out;
+  opacityByKey[albumOrder[i]] = inn;
+  return {
+    opacityByKey,
+    outgoingKey: albumOrder[i - 1],
+    incomingKey: albumOrder[i],
+    stepT: t,
+  };
 }
 
 export function buildCoverLayers(albumOrder) {
@@ -154,7 +181,7 @@ export function scrollToStepIndex(stepIndex) {
   const vh = window.innerHeight;
   const unit = stepUnitPx();
   const trackTop = track.getBoundingClientRect().top + window.scrollY;
-  const targetStepFloat = stepIndex + 0.15;
+  const targetStepFloat = scrollSnapStepFloat(stepIndex);
   const targetScrollY = trackTop + targetStepFloat * unit - vh * SCROLL_FOCUS_VH;
 
   window.scrollTo({
@@ -205,10 +232,14 @@ function updateFromScroll() {
   const relY = window.scrollY - trackTop + vh * SCROLL_FOCUS_VH;
   const stepFloat = Math.max(0, relY / unit);
 
-  const opacityByKey = computeScrollOpacities(stepFloat, albumOrder);
-  setContentLayerOpacities(opacityByKey);
-  setCoverLayerOpacities(opacityByKey);
-  updateStageLabel(opacityByKey, albumOrder);
+  const scrollState = computeScrollOpacities(stepFloat, albumOrder);
+  setContentLayerOpacities(scrollState.opacityByKey, {
+    outgoingKey: scrollState.outgoingKey,
+    incomingKey: scrollState.incomingKey,
+    stepT: scrollState.stepT,
+  });
+  setCoverLayerOpacities(scrollState.opacityByKey);
+  updateStageLabel(scrollState.opacityByKey, albumOrder);
 }
 
 export function initScrollController() {

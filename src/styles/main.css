@@ -262,9 +262,13 @@ body {
   transition: none;
 }
 
+.center-logo-wrap {
+  transition: none;
+  pointer-events: none;
+}
+
 .center-global-era,
 .center-album-logo {
-  transition: none;
   pointer-events: none;
 }
 

@@ -49,7 +49,7 @@ export const WHEEL_RADIUS_RATIO = 0.41;
  * Scroll distance per era step, in viewport heights (1 = one screen).
  * Raise to stay on each album longer before crossfade; lower for faster switching.
  */
-export const SCROLL_STEP_VH = 2.65;
+export const SCROLL_STEP_VH = 1.8;
 
 export function getOverviewVizLayout(containerWidth) {
   const width = Math.min(

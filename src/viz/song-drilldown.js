@@ -34,13 +34,18 @@ function setMainLayersHidden(hidden) {
         .style("pointer-events", op > 0.08 ? "all" : "none");
     }
     if (layers.centerImagesG && saved.center != null) {
-      layers.centerImagesG.attr("opacity", 1);
-      layers.centerImagesG
-        .select("image.center-global-era")
-        .attr("opacity", saved.center.global ?? 0);
-      layers.centerImagesG.selectAll("image.center-album-logo").each(function () {
-        const album = d3.select(this).attr("data-album");
-        d3.select(this).attr("opacity", saved.center.albums[album] ?? 0);
+      const { centerX, centerY } = layers;
+      layers.centerImagesG.selectAll(".center-logo-wrap").each(function () {
+        const wrap = d3.select(this);
+        const layerKey =
+          wrap.attr("data-layer-key") === "global"
+            ? "global"
+            : wrap.attr("data-album");
+        const opacity = saved.center.layers?.[layerKey] ?? 0;
+        const angle = saved.center.rotations?.[layerKey] ?? 0;
+        wrap
+          .attr("opacity", opacity)
+          .attr("transform", `rotate(${angle} ${centerX} ${centerY})`);
       });
     }
     delete layers._savedLayerOpacity;
@@ -56,15 +61,18 @@ function saveLayerOpacitySnapshot() {
     albums[album] = Number(layer.attr("opacity")) || 0;
   }
 
-  const center = { global: 0, albums: {} };
+  const center = { layers: {}, rotations: {} };
   if (layers.centerImagesG) {
-    center.global =
-      Number(
-        layers.centerImagesG.select("image.center-global-era").attr("opacity")
-      ) || 0;
-    layers.centerImagesG.selectAll("image.center-album-logo").each(function () {
-      const album = d3.select(this).attr("data-album");
-      center.albums[album] = Number(d3.select(this).attr("opacity")) || 0;
+    layers.centerImagesG.selectAll(".center-logo-wrap").each(function () {
+      const wrap = d3.select(this);
+      const layerKey =
+        wrap.attr("data-layer-key") === "global"
+          ? "global"
+          : wrap.attr("data-album");
+      center.layers[layerKey] = Number(wrap.attr("opacity")) || 0;
+      const transform = wrap.attr("transform") || "";
+      const match = transform.match(/rotate\(([-\d.]+)/);
+      center.rotations[layerKey] = match ? Number(match[1]) : 0;
     });
   }
 
@@ -81,11 +89,17 @@ function showDrilldownCenterLogo(song) {
   if (!layers?.centerImagesG) return;
 
   const albumName = getAlbumKey(song);
-  layers.centerImagesG.attr("opacity", 1);
-  layers.centerImagesG.select("image.center-global-era").attr("opacity", 0);
-  layers.centerImagesG.selectAll("image.center-album-logo").each(function () {
-    const album = d3.select(this).attr("data-album");
-    d3.select(this).attr("opacity", album === albumName ? 1 : 0);
+  const { centerX, centerY } = layers;
+  layers.centerImagesG.selectAll(".center-logo-wrap").each(function () {
+    const wrap = d3.select(this);
+    const layerKey =
+      wrap.attr("data-layer-key") === "global"
+        ? "global"
+        : wrap.attr("data-album");
+    const visible = layerKey !== "global" && layerKey === albumName;
+    wrap
+      .attr("opacity", visible ? 1 : 0)
+      .attr("transform", `rotate(0 ${centerX} ${centerY})`);
   });
 
   document.querySelector(".overview-viz-frame")?.classList.remove("show-global-era");
