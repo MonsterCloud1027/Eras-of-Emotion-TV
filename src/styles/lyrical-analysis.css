@@ -1,0 +1,142 @@
+/* Shared styles for the lyric-analysis pages:
+   lyrical complexity (Q7), song structure DNA (Q8). */
+
+.la-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 1320px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.la-panel {
+  padding: 1.5rem 1.5rem 1.75rem;
+}
+
+/* --- Toggle / sort controls (pill group) --- */
+.la-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+}
+
+.la-controls__label {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-right: 0.25rem;
+}
+
+.la-pill {
+  padding: 0.4rem 0.95rem;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.la-pill:hover {
+  border-color: var(--accent);
+}
+
+.la-pill.is-active {
+  background: #4a3f6b;
+  border-color: #4a3f6b;
+  color: #fff;
+}
+
+/* --- Chart frame --- */
+.la-chart {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.la-chart svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.la-caption {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0.25rem auto 1rem;
+  max-width: 760px;
+}
+
+/* --- Legend (swatch row) --- */
+.la-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.1rem;
+  margin: 0 0 1.25rem;
+}
+
+.la-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--text);
+  cursor: default;
+}
+
+.la-legend__swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 3px;
+  flex: none;
+}
+
+.la-legend__item.is-dim {
+  opacity: 0.35;
+}
+
+/* --- Axis / SVG text --- */
+.la-axis text {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  fill: var(--text-muted);
+}
+
+.la-axis line,
+.la-axis path {
+  stroke: var(--axis);
+}
+
+.la-band-label {
+  font-family: var(--font-serif);
+  fill: var(--text);
+}
+
+.la-band-sub {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  fill: var(--text-muted);
+}
+
+.la-from-vault {
+  color: #8e5bb5;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .la-main {
+    padding: 0 1rem 2rem;
+  }
+  .la-panel {
+    padding: 1.1rem 0.9rem 1.25rem;
+  }
+}

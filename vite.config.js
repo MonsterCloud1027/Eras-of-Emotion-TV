@@ -74,6 +74,8 @@ export default defineConfig({
         main: path.resolve(rootDir, "index.html"),
         lyricalThemes: path.resolve(rootDir, "lyrical-themes.html"),
         lyricalPatterns: path.resolve(rootDir, "lyrical-patterns.html"),
+        lyricalComplexity: path.resolve(rootDir, "lyrical-complexity.html"),
+        songStructure: path.resolve(rootDir, "song-structure.html"),
       },
     },
   },

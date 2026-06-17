@@ -2,8 +2,6 @@
  * Site-wide navigation between visualizations.
  */
 
-const PLACEHOLDER_COUNT = 3;
-
 export const NAV_ITEMS = [
   {
     id: "galaxy",
@@ -26,12 +24,20 @@ export const NAV_ITEMS = [
     description: "Album emotion patterns",
     href: "lyrical-patterns.html",
   },
-  ...Array.from({ length: PLACEHOLDER_COUNT }, (_, index) => ({
-    id: `other-vis-${index + 1}`,
-    label: "Other Vis",
-    shortLabel: "Other",
-    placeholder: true,
-  })),
+  {
+    id: "other-vis-1",
+    label: "Lyrical Complexity",
+    shortLabel: "Complexity",
+    description: "CEFR vocabulary across albums",
+    href: "lyrical-complexity.html",
+  },
+  {
+    id: "other-vis-2",
+    label: "Song Structure",
+    shortLabel: "Structure",
+    description: "Section DNA strips by style",
+    href: "song-structure.html",
+  },
 ];
 
 function navHref(href) {
