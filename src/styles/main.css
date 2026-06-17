@@ -211,19 +211,74 @@ body {
   pointer-events: none;
 }
 
-/* Global: 4×3 mosaic of album covers (viewport-sized, not scroll-track height) */
+/* Global: 4×3 mosaic — each row marquees horizontally (R / L / R) */
 .cover-layer--grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 3px;
   opacity: 0;
 }
 
+.cover-grid-row {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cover-grid-row-track {
+  display: flex;
+  height: 100%;
+  width: 200%;
+  will-change: transform;
+}
+
+.cover-grid-row[data-direction="right"] .cover-grid-row-track {
+  animation: cover-grid-marquee-right 48s linear infinite;
+}
+
+.cover-grid-row[data-direction="left"] .cover-grid-row-track {
+  animation: cover-grid-marquee-left 52s linear infinite;
+}
+
+.cover-layer--grid.is-marquee-active .cover-grid-row-track {
+  animation-play-state: running;
+}
+
+.cover-layer--grid:not(.is-marquee-active) .cover-grid-row-track {
+  animation-play-state: paused;
+}
+
+@keyframes cover-grid-marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes cover-grid-marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 .cover-grid-cell {
+  flex: 0 0 12.5%;
+  height: 100%;
   background-size: cover;
   background-position: center;
   filter: saturate(0.92) brightness(0.88);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cover-grid-row-track {
+    animation: none !important;
+    transform: none !important;
+  }
 }
 
 .cover-layer--album {

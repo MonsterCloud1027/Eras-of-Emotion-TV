@@ -101,20 +101,37 @@ export function buildCoverLayers(albumOrder) {
   root.selectAll("*").remove();
 
   const withCovers = albumsWithCovers(albumOrder);
+  const COLS = 4;
+  const ROW_COUNT = 3;
+  /** Row 0 → right, row 1 → left, row 2 → right */
+  const ROW_DIRECTIONS = ["right", "left", "right"];
 
   const grid = root
     .append("div")
     .attr("class", "cover-layer cover-layer--grid")
     .attr("data-layer", "global");
 
-  withCovers.forEach((album) => {
-    const url = getAlbumCoverUrl(album);
-    grid
+  for (let rowIndex = 0; rowIndex < ROW_COUNT; rowIndex += 1) {
+    const rowAlbums = withCovers.slice(rowIndex * COLS, (rowIndex + 1) * COLS);
+    if (!rowAlbums.length) continue;
+
+    const row = grid
       .append("div")
-      .attr("class", "cover-grid-cell")
-      .attr("data-album", album)
-      .style("background-image", `url("${url}")`);
-  });
+      .attr("class", "cover-grid-row")
+      .attr("data-row", rowIndex)
+      .attr("data-direction", ROW_DIRECTIONS[rowIndex]);
+
+    const track = row.append("div").attr("class", "cover-grid-row-track");
+
+    [...rowAlbums, ...rowAlbums].forEach((album) => {
+      const url = getAlbumCoverUrl(album);
+      track
+        .append("div")
+        .attr("class", "cover-grid-cell")
+        .attr("data-album", album)
+        .style("background-image", `url("${url}")`);
+    });
+  }
 
   albumOrder.forEach((album) => {
     const url = getAlbumCoverUrl(album);
@@ -131,7 +148,9 @@ export function buildCoverLayers(albumOrder) {
 export function setCoverLayerOpacities(opacityByKey) {
   const grid = d3.select(".cover-layer--grid");
   if (!grid.empty()) {
-    grid.style("opacity", opacityByKey.global ?? 0);
+    const globalOp = opacityByKey.global ?? 0;
+    grid.style("opacity", globalOp);
+    grid.classed("is-marquee-active", globalOp > 0.08);
   }
 
   d3.selectAll(".cover-layer--album").each(function () {
