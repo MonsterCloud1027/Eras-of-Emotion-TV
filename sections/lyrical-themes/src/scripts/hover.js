@@ -1,61 +1,70 @@
-"use strict";
+'use strict'
 
-import * as d3 from "d3";
+import * as d3 from 'd3'
 
-const tooltip = d3.select("#tooltip");
+const tooltip = d3.select('#tooltip')
 
-// From the PCA analysis, see the explore2 notebook
-const top_emotions_composition = {
-  "Heartbreak": ["Sadness", "Anger", "Fear"],
-  "Romantic optimism": ["Joy", "Anticipation", "Trust"],
-  "Vengeance": ["Anger", "Disgust"],
-  "Anxiety": ["Fear", "Anticipation"]
-};
+const topEmotionsComposition = {
+  'Heartbreak': ['Sadness', 'Anger', 'Fear'],
+  'Romantic optimism': ['Joy', 'Anticipation', 'Trust'],
+  'Vengeance': ['Anger', 'Disgust'],
+  'Anxiety': ['Fear', 'Anticipation']
+}
 
-/**
- * Initializes the tooltip element.
- */
-export function initTooltip() {
-  tooltip.style("display", "none");
+export function initTooltip () {
+  tooltip.style('display', 'none')
 }
 
 /**
- * Shows the tooltip with information about the hovered treemap cell.
- *
- * @param {MouseEvent} event The mouse event that triggered the tooltip
- * @param {object} d The treemap leaf node datum
+ * @param {string} theme
+ * @returns {string}
  */
-export function showTooltip(event, d) {
-  const emotions = top_emotions_composition[d.data.name];
-  const emotionText = emotions ? `<span>${emotions.join(", ")}</span>` : "";
+export function themeEmotionText (theme) {
+  const emotions = topEmotionsComposition[theme]
+  return emotions ? emotions.join(', ') : ''
+}
+
+/**
+ * @param {MouseEvent} event
+ * @param {string} theme
+ */
+export function showLegendTooltip (event, theme) {
+  const emotionText = themeEmotionText(theme)
+  if (!emotionText) return
 
   tooltip
-    .style("display", "block")
-    .html(
-      emotionText
-    );
-  moveTooltip(event);
+    .style('display', 'block')
+    .text(emotionText)
+
+  moveTooltip(event)
 }
 
 /**
- * Repositions the tooltip to follow the cursor.
- *
- * @param {MouseEvent} event The current mouse event
+ * @param {MouseEvent} event
+ * @param {object} dot
  */
-export function moveTooltip(event) {
-  const gap = 14;
-  const w = tooltip.node().offsetWidth;
-  const h = tooltip.node().offsetHeight;
-  let x = event.clientX + gap;
-  let y = event.clientY + gap;
-  if (x + w > window.innerWidth - 8) x = event.clientX - w - gap;
-  if (y + h > window.innerHeight - 8) y = event.clientY - h - gap;
-  tooltip.style("left", `${x}px`).style("top", `${y}px`);
+export function showTooltip (event, dot) {
+  tooltip
+    .style('display', 'block')
+    .html(`<strong>${dot.song.song_title}</strong>`)
+
+  moveTooltip(event)
 }
 
 /**
- * Hides the tooltip.
+ * @param {MouseEvent} event
  */
-export function hideTooltip() {
-  tooltip.style("display", "none");
+export function moveTooltip (event) {
+  const gap = 14
+  const w = tooltip.node().offsetWidth
+  const h = tooltip.node().offsetHeight
+  let x = event.clientX + gap
+  let y = event.clientY + gap
+  if (x + w > window.innerWidth - 8) x = event.clientX - w - gap
+  if (y + h > window.innerHeight - 8) y = event.clientY - h - gap
+  tooltip.style('left', `${x}px`).style('top', `${y}px`)
+}
+
+export function hideTooltip () {
+  tooltip.style('display', 'none')
 }

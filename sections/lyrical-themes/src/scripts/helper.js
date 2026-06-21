@@ -23,7 +23,7 @@ export function generateG (margin) {
  * @param {number} height Canvas height in pixels
  */
 export function setCanvasSize (width, height) {
-  d3.select('#treemap').select('svg')
+  d3.select('#dot-grid').select('svg')
     .attr('width', width)
     .attr('height', height)
 }

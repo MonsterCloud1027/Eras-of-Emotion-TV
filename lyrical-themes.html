@@ -11,15 +11,16 @@
 
   <header class="lyrical-page__hero">
     <h1>Evolution of the lyrical themes</h1>
-    <p>We used principal component analysis on the emotions, in order to exctract four main lyrical themes.</p>
-    <p>Hover over the lyrical themes to learn more about which emotions they represent</p>
+    <p>We used principal component analysis on the emotions, in order to extract four main lyrical themes.</p>
+    <p>Each dot is a line of lyrics, colored by theme.</p>
   </header>
 
   <main class="lyrical-page__main">
     <nav id="album-timeline" class="lyrical-album-timeline" aria-label="Album timeline"></nav>
+    <div id="theme-legend" class="theme-legend" aria-label="Theme legend"></div>
     <div class="lyrical-page__panel lyrical-graph-wrap">
-      <div class="graph" id="treemap">
-        <svg class="treemap-svg"></svg>
+      <div class="graph" id="dot-grid">
+        <svg class="dot-grid-svg"></svg>
       </div>
     </div>
   </main>

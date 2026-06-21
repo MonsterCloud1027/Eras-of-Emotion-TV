@@ -2,212 +2,202 @@
 
 import * as d3 from 'd3'
 
-import * as preproc from './preprocess.js'
 import * as hover from './hover.js'
 
-const TRANSITION_MS = 650
+const MOVE_MS = 420 // Time to go from previous to new pos for the "blocks"
+const FADE_MS = 200 // Same, but for the tail, i.e the dots that don't belong to a block
+const STAGGER_MS = 1 // It seems that 1 is fast enough, even though we can still see soem artifacts
 
-const treemap = d3.treemap()
-  .tile(d3.treemapResquarify)
-  .paddingOuter(4)
-  .paddingInner(3)
-  .round(true)
+let layout = null
 
-/**
- * Persistent d3 hierarchy built from mean emotion scores.
- * Keeping the same object across calls preserves the `d.z` ratios that
- * treemapResquarify uses to maintain stable splits.
- * @type {object|null}
- */
-let rootHierarchy = null
-
-/**
- * Initialises the persistent hierarchy from mean emotion scores and runs the
- * treemap layout once to record the initial tile ratios (d.z).
- * Must be called once before any updates.
- *
- * @param {object} meanScores Mean emotion scores across all albums
- * @param {number} width Graph width in pixels
- * @param {number} height Graph height in pixels
- */
-export function initBaseLayout (meanScores, width, height) {
-  treemap.size([width, height])
-  rootHierarchy = preproc.buildHierarchy(meanScores)
-  treemap(rootHierarchy) // sets d.z on every node for resquarify
+function themeBreakdown (dots) {
+  const counts = new Map()
+  const order = []
+  for (const d of dots) {
+    if (!counts.has(d.theme)) order.push(d.theme)
+    counts.set(d.theme, (counts.get(d.theme) || 0) + 1)
+  }
+  return { counts, order }
 }
 
-/**
- * Updates the persistent hierarchy with per-album values and re-runs the
- * treemap. Because treemapResquarify reuses the stored d.z ratios it produces
- * the same splits as the initial mean layout — only widths and heights change.
- *
- * @param {object} emotionScores Emotion scores for the selected album
- * @param {number} width Graph width in pixels
- * @param {number} height Graph height in pixels
- * @returns {object} The updated d3 hierarchy root with new layout coordinates
- */
-function computeLayoutForAlbum (emotionScores, width, height) {
-  treemap.size([width, height])
+function albumRowCount (dots, cols) {
+  const { counts, order } = themeBreakdown(dots)
+  return d3.sum(order, t => Math.ceil(counts.get(t) / cols))
+}
 
-  const total = d3.sum(Object.values(emotionScores))
+function buildThemeInfo (dots, cols) {
+  const { counts, order } = themeBreakdown(dots)
+  const info = new Map()
+  let startRow = 0
+  for (const theme of order) {
+    const count = counts.get(theme)
+    info.set(theme, { startRow, count, fullRows: Math.floor(count / cols) })
+    startRow += Math.ceil(count / cols)
+  }
+  return info
+}
 
-  // Update leaf values in-place so d.z is preserved for resquarify
-  rootHierarchy.leaves().forEach(leaf => {
-    const val = emotionScores[leaf.data.name] || 0
-    leaf.data.value = val
-    leaf.data.pct = total > 0 ? val / total : 0
+function dotPosition (dot, info) {
+  const themeInfo = info.get(dot.theme)
+  const col = dot.themeIndex % layout.cols
+  const row = themeInfo.startRow + Math.floor(dot.themeIndex / layout.cols)
+  return {
+    x: col * layout.cellW + layout.cellW / 2,
+    y: row * layout.cellH + layout.cellH / 2
+  }
+}
+
+// Virtual because the dot might get removed with the fading, but it has to move before
+function virtualNewY (dot, info) {
+  const themeInfo = info.get(dot.theme)
+  if (!themeInfo) return null
+  const row = themeInfo.startRow + Math.floor(dot.themeIndex / layout.cols)
+  return row * layout.cellH + layout.cellH / 2
+}
+
+export function computeGridLayout (albumDotsMap, width, height) {
+  const albums = Object.values(albumDotsMap)
+  const maxDots = d3.max(albums, d => d.length) ?? 0
+
+  if (maxDots === 0) {
+    return { cols: 0, rows: 0, cellW: 0, cellH: 0, radius: 0 }
+  }
+
+  const cols = Math.max(1, Math.floor(Math.sqrt(maxDots * (width / height))))
+  const rows = Math.max(1, d3.max(albums, d => albumRowCount(d, cols)) ?? 1)
+  const cellW = width / cols
+  const cellH = height / rows
+  const gap = Math.min(4, Math.min(cellW, cellH) * 0.2)
+  const radius = Math.max(1, Math.min(cellW, cellH) / 2 - gap)
+
+  return { cols, rows, cellW, cellH, radius }
+}
+
+export function initDots (albumDotsMap, width, height) {
+  layout = computeGridLayout(albumDotsMap, width, height)
+  d3.select('#graph-g').selectAll('.dot').remove()
+}
+
+export function updateDots (dots, colorScale, animated) {
+  const info = buildThemeInfo(dots, layout.cols)
+
+  const keyed = dots.map(dot => {
+    const pos = dotPosition(dot, info)
+    return { ...dot, x: pos.x, y: pos.y }
   })
 
-  // Re-sum propagates updated leaf values up the hierarchy
-  rootHierarchy.sum(d => d.value)
+  const circles = d3.select('#graph-g')
+    .selectAll('.dot')
+    .data(keyed, d => `${d.theme}#${d.themeIndex}`)
 
-  // treemapResquarify reuses d.z → same splits, different sizes
-  return treemap(rootHierarchy)
-}
-
-/**
- * Appends the initial SVG group elements for each emotion cell.
- * Called once the first time cells don't yet exist in the DOM.
- *
- * @param {object[]} leaves Treemap leaf nodes with layout coordinates
- * @param {*} colorScale The d3 color scale for emotions
- */
-function appendCells (leaves, colorScale) {
-  d3.select('#graph-g')
-    .selectAll('.cell')
-    .data(leaves, d => d.data.name)
-    .join('g')
-    .attr('class', 'cell')
-    .each(function (d) {
-      const cell = d3.select(this)
-
-      cell.append('rect')
-        .attr('class', 'cell-rect')
-        .attr('rx', 4)
-        .attr('ry', 4)
-        .attr('x', d.x0)
-        .attr('y', d.y0)
-        .attr('width', Math.max(0, d.x1 - d.x0))
-        .attr('height', Math.max(0, d.y1 - d.y0))
-        .attr('fill', colorScale(d.data.name))
-
-      cell.append('text')
-        .attr('class', 'cell-label')
-        .attr('x', (d.x0 + d.x1) / 2)
-        .attr('y', labelY(d, false))
-        .attr('font-size', labelSize(d))
-        .attr('fill', '#fff')
-        .attr('opacity', labelVisible(d) ? 1 : 0)
-        .text(d.data.name)
-
-      cell.append('text')
-        .attr('class', 'cell-pct')
-        .attr('x', (d.x0 + d.x1) / 2)
-        .attr('y', labelY(d, true))
-        .attr('font-size', pctSize(d))
-        .attr('fill', 'rgba(255,255,255,0.75)')
-        .attr('opacity', pctVisible(d) ? 1 : 0)
-        .text(`${(d.data.pct * 100).toFixed(1)}%`)
+  if (animated) {
+    // Collect exit data first so we can compute the indices for the fading
+    const exitByTheme = {}
+    circles.exit().each(function (d) {
+      if (!exitByTheme[d.theme]) exitByTheme[d.theme] = []
+      exitByTheme[d.theme].push({ node: this, d })
+    })
+    Object.values(exitByTheme).forEach(group => {
+      // group.sort((a, b) => a.d.themeIndex - b.d.themeIndex)
+      group.sort((a, b) => b.d.themeIndex - a.d.themeIndex)
+      group.forEach(({ node, d }, i) => {
+        const newY = virtualNewY(d, info)
+        // If we spam transitions and the previous one is longer, without interrupt it looks VERY strange
+        const circle = d3.select(node).interrupt()
+        const fadeDelay = i * STAGGER_MS
+        if (newY == null) {
+          circle.transition().delay(fadeDelay).duration(FADE_MS).attr('opacity', 0).remove()
+        } else {
+          circle
+            .transition().duration(MOVE_MS).ease(d3.easeCubicInOut)
+            .attr('cy', newY)
+            .on('end', function () {
+              d3.select(this).transition().delay(fadeDelay).duration(FADE_MS).attr('opacity', 0).remove()
+            })
+        }
+      })
     })
 
+    // All dots slide vertically, horizontal sliding was a mess :(
+    circles
+      .interrupt()
+      .transition().duration(MOVE_MS).ease(d3.easeCubicInOut)
+      .attr('cy', d => d.y)
+      .attr('opacity', 1)
+
+    const themeEnterCounter = {}
+    circles.enter()
+      .append('circle')
+      .attr('class', 'dot')
+      .attr('cx', d => d.x)
+      .attr('cy', d => d.y)
+      .attr('r', layout.radius)
+      .attr('fill', d => colorScale(d.theme))
+      .attr('opacity', 0)
+      .attr('pointer-events', 'all')
+      .on('mouseenter', (event, d) => hover.showTooltip(event, d))
+      .on('mousemove', (event) => hover.moveTooltip(event))
+      .on('mouseleave', () => hover.hideTooltip())
+      .transition()
+      .delay(d => {
+        if (themeEnterCounter[d.theme] === undefined) themeEnterCounter[d.theme] = 0
+        return MOVE_MS * 0.5 + themeEnterCounter[d.theme]++ * STAGGER_MS
+      })
+      .duration(FADE_MS)
+      .ease(d3.easeCubicOut)
+      .attr('opacity', 1)
+  } else {
+    circles.exit().remove()
+
+    circles
+      .interrupt()
+      .attr('cx', d => d.x)
+      .attr('cy', d => d.y)
+      .attr('opacity', 1)
+
+    circles.enter()
+      .append('circle')
+      .attr('class', 'dot')
+      .attr('cx', d => d.x)
+      .attr('cy', d => d.y)
+      .attr('r', layout.radius)
+      .attr('fill', d => colorScale(d.theme))
+      .attr('opacity', 1)
+      .attr('pointer-events', 'all')
+      .on('mouseenter', (event, d) => hover.showTooltip(event, d))
+      .on('mousemove', (event) => hover.moveTooltip(event))
+      .on('mouseleave', () => hover.hideTooltip())
+  }
+}
+
+export function resetLayout (albumDotsMap, width, height, currentDots, colorScale) {
+  layout = computeGridLayout(albumDotsMap, width, height)
+
   d3.select('#graph-g')
-    .selectAll('.cell')
-    .on('mouseenter', (event, d) => hover.showTooltip(event, d))
-    .on('mousemove', (event) => hover.moveTooltip(event))
-    .on('mouseleave', () => hover.hideTooltip())
+    .selectAll('.dot')
+    .attr('r', layout.radius)
+
+  updateDots(currentDots, colorScale, false)
 }
 
-/**
- * Updates the treemap to reflect a new album's emotion scores.
- * The tree structure (splits) stays identical to the mean-based base layout;
- * only cell sizes and percentage labels animate.
- *
- * @param {object} emotionScores Emotion scores for the selected album
- * @param {number} width Graph width in pixels
- * @param {number} height Graph height in pixels
- * @param {*} colorScale The d3 color scale for emotions
- * @param {boolean} animated Whether to animate the transition
- */
-export function update (emotionScores, width, height, colorScale, animated) {
-  const root = computeLayoutForAlbum(emotionScores, width, height)
-  const leaves = root.leaves()
+export function renderLegend (colorScale) {
+  const container = d3.select('#theme-legend')
+  if (container.empty()) return
 
-  const t = animated
-    ? d3.transition().duration(TRANSITION_MS).ease(d3.easeCubicInOut)
-    : d3.transition().duration(0)
+  container.selectAll('*').remove()
 
-  const cells = d3.select('#graph-g')
-    .selectAll('.cell')
-    .data(leaves, d => d.data.name)
+  const items = container.append('div').attr('class', 'theme-legend__items')
 
-  if (cells.empty()) {
-    appendCells(leaves, colorScale)
-    return
-  }
+  colorScale.domain().forEach(theme => {
+    const item = items.append('div')
+      .attr('class', 'theme-legend__item')
+      .on('mouseenter', (event) => hover.showLegendTooltip(event, theme))
+      .on('mousemove', (event) => hover.moveTooltip(event))
+      .on('mouseleave', () => hover.hideTooltip())
 
-  cells.select('.cell-rect')
-    .transition(t)
-    .attr('x', d => d.x0)
-    .attr('y', d => d.y0)
-    .attr('width', d => Math.max(0, d.x1 - d.x0))
-    .attr('height', d => Math.max(0, d.y1 - d.y0))
-    .attr('fill', d => colorScale(d.data.name))
-
-  cells.select('.cell-label')
-    .transition(t)
-    .attr('x', d => (d.x0 + d.x1) / 2)
-    .attr('y', d => labelY(d, false))
-    .attr('font-size', d => labelSize(d))
-    .attr('opacity', d => labelVisible(d) ? 1 : 0)
-
-  cells.select('.cell-pct')
-    .transition(t)
-    .attr('x', d => (d.x0 + d.x1) / 2)
-    .attr('y', d => labelY(d, true))
-    .attr('font-size', d => pctSize(d))
-    .attr('opacity', d => pctVisible(d) ? 1 : 0)
-    .text(d => `${(d.data.pct * 100).toFixed(1)}%`)
-}
-
-/**
- * Resets and rebuilds the base layout at a new canvas size.
- * Should be called on window resize before update().
- *
- * @param {object} meanScores Mean emotion scores
- * @param {number} width New graph width
- * @param {number} height New graph height
- */
-export function resetLayout (meanScores, width, height) {
-  rootHierarchy = null
-  initBaseLayout(meanScores, width, height)
-}
-
-// ── Label helpers ────────────────────────────────────────────────────────────
-
-function labelY (d, isPct) {
-  const mid = (d.y0 + d.y1) / 2
-  const h = d.y1 - d.y0
-  const w = d.x1 - d.x0
-  if (h > 55 && w > 65) {
-    return isPct ? mid + 14 : mid - 10
-  }
-  return mid
-}
-
-function labelSize (d) {
-  const min = Math.min(d.x1 - d.x0, d.y1 - d.y0)
-  return `${Math.max(10, Math.min(min * 0.18, 26))}px`
-}
-
-function pctSize (d) {
-  const min = Math.min(d.x1 - d.x0, d.y1 - d.y0)
-  return `${Math.max(9, Math.min(min * 0.11, 15))}px`
-}
-
-function labelVisible (d) {
-  return (d.x1 - d.x0) > 55 && (d.y1 - d.y0) > 28
-}
-
-function pctVisible (d) {
-  return (d.x1 - d.x0) > 65 && (d.y1 - d.y0) > 55
+    item.append('span')
+      .attr('class', 'theme-legend__swatch')
+      .style('background-color', colorScale(theme))
+    item.append('span').attr('class', 'theme-legend__label').text(theme)
+  })
 }

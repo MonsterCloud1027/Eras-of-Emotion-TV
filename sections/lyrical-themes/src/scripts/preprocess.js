@@ -1,99 +1,141 @@
-'use strict'
+"use strict"
 
-import * as d3 from 'd3'
+import * as d3 from "d3"
 
-const ALBUM_ORDER = [
-  'Taylor Swift',
-  'Fearless',
-  'Speak Now',
-  'Red',
-  '1989',
-  'Reputation',
-  'Lover',
-  'Folklore',
-  'Evermore',
-  'Midnights',
-  'The Tortured Poets Department',
-  'The Life Of A Showgirl'
+export const LINES_PER_DOT = 1
+
+export const ALBUM_ORDER = [
+  "Taylor Swift",
+  "Fearless",
+  "Speak Now",
+  "Red",
+  "1989",
+  "Reputation",
+  "Lover",
+  "Folklore",
+  "Evermore",
+  "Midnights",
+  "The Tortured Poets Department",
+  "The Life Of A Showgirl"
 ]
 
-const THEMES = ['Heartbreak', 'Romantic optimism', 'Vengeance', 'Anxiety']
+export const THEMES = ["Heartbreak", "Romantic optimism", "Vengeance", "Anxiety"]
 
 /**
- * Aggregates song data into per-album average emotion scores.
- *
- * @param {object[]} songs The raw song data array
- * @returns {object} Map of album name to emotion score averages
+ * @param {object} themeScores
+ * @returns {string}
  */
-export function buildAlbumEmotionData (songs) {
-  const byAlbum = d3.group(songs, d => d.album)
+function dominantTheme (themeScores) {
+  return THEMES.reduce((best, theme) => {
+    const score = themeScores?.[theme] ?? 0
+    const bestScore = themeScores?.[best] ?? 0
+    return score > bestScore ? theme : best
+  }, THEMES[0])
+}
+
+/**
+ * Streams lyric lines into dot-sized chunks for an ordered song list.
+ *
+ * @param {object[]} sortedSongs Songs in the desired order
+ * @param {number} linesPerDot Lines represented by each dot
+ * @returns {object[]}
+ */
+function streamDotsFromSongs (sortedSongs, linesPerDot) {
+  const dots = []
+  let songIdx = 0
+  let lineInSong = 0
+
+  while (songIdx < sortedSongs.length) {
+    let linesInDot = 0
+    let dotSong = sortedSongs[songIdx]
+
+    while (linesInDot < linesPerDot && songIdx < sortedSongs.length) {
+      const song = sortedSongs[songIdx]
+      const songRemaining = song.n_lyrics - lineInSong
+      const needed = linesPerDot - linesInDot
+      const take = Math.min(needed, songRemaining)
+
+      if (linesInDot === 0) dotSong = song
+
+      linesInDot += take
+      lineInSong += take
+
+      if (lineInSong >= song.n_lyrics) {
+        songIdx++
+        lineInSong = 0
+      }
+    }
+
+    dots.push({
+      theme: dominantTheme(dotSong.theme_scores),
+      song: dotSong,
+      lines: linesInDot
+    })
+  }
+
+  return dots
+}
+
+/**
+ * Builds dots ordered by lyrical theme, then song track order within each theme.
+ *
+ * @param {object[]} songs Songs for one album
+ * @param {number} linesPerDot Lines represented by each dot
+ * @returns {object[]}
+ */
+export function buildAlbumDots (songs, linesPerDot) {
+  const byTheme = d3.group(songs, s => dominantTheme(s.theme_scores))
+  const dots = []
+
+  THEMES.forEach(theme => {
+    const themeSongs = byTheme.get(theme)
+    if (!themeSongs) return
+
+    const sorted = [...themeSongs].sort((a, b) => a.song_id.localeCompare(b.song_id))
+    const themeDots = streamDotsFromSongs(sorted, linesPerDot)
+
+    themeDots.forEach((dot, themeIndex) => {
+      dots.push({ ...dot, themeIndex })
+    })
+  })
+
+  return dots.map((dot, index) => ({ ...dot, index }))
+}
+
+/**
+ * @param {object[]} songs
+ * @param {number} [linesPerDot]
+ * @returns {Record<string, object[]>}
+ */
+export function buildAllAlbumDots (songs) {
+  const byAlbum = d3.group(
+    songs.filter(s => s.album !== "Other Songs"),
+    d => d.album
+  )
   const result = {}
 
   ALBUM_ORDER.forEach(album => {
     const albumSongs = byAlbum.get(album)
-    if (!albumSongs) return
-
-    const scores = {}
-    THEMES.forEach(theme => {
-      scores[theme] = d3.mean(albumSongs, s => (s.theme_scores || {})[theme] || 0)
-    })
-    result[album] = scores
+    if (albumSongs) {
+      result[album] = buildAlbumDots(albumSongs, LINES_PER_DOT)
+    }
   })
 
   return result
 }
 
 /**
- * Returns the ordered list of album names present in the data.
- *
- * @param {object} albumData The aggregated album emotion data
- * @returns {string[]} Ordered album names
+ * @param {Record<string, object[]>} albumDotsMap
+ * @returns {number}
  */
-export function getAlbumOrder (albumData) {
-  return ALBUM_ORDER.filter(album => album in albumData)
+export function computeMaxDots (albumDotsMap) {
+  return d3.max(Object.values(albumDotsMap), dots => dots.length) ?? 0
 }
 
 /**
- * Computes mean emotion scores across all albums.
- * Used to build a stable treemap layout whose positions don't change between albums.
- *
- * @param {object} albumData Map of album name to emotion score averages
- * @returns {object} Map of emotion name to mean score across all albums
+ * @param {Record<string, object[]>} albumDotsMap
+ * @returns {string[]}
  */
-export function buildMeanEmotionData (albumData) {
-  const albums = Object.values(albumData)
-  const result = {}
-  THEMES.forEach(emotion => {
-    result[emotion] = d3.mean(albums, a => a[emotion] || 0)
-  })
-  return result
-}
-
-/**
- * Returns the list of emotion names.
- *
- * @param {object} albumData The aggregated album emotion data
- * @returns {string[]} Emotion names
- */
-export function getEmotions (albumData) {
-  const first = Object.values(albumData)[0]
-  return first ? Object.keys(first) : []
-}
-
-/**
- * Converts an album's emotion scores into a d3 hierarchy for treemap layout.
- *
- * @param {object} emotionScores Map of emotion name to average score
- * @returns {object} d3 hierarchy root with summed values
- */
-export function buildHierarchy (emotionScores) {
-  const total = d3.sum(Object.values(emotionScores))
-  return d3.hierarchy({
-    name: 'root',
-    children: THEMES.map(name => ({
-      name,
-      value: emotionScores[name] || 0,
-      pct: total > 0 ? (emotionScores[name] || 0) / total : 0
-    }))
-  }).sum(d => d.value)
+export function getAlbumOrder (albumDotsMap) {
+  return ALBUM_ORDER.filter(album => album in albumDotsMap)
 }

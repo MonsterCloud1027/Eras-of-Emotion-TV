@@ -18,7 +18,7 @@
                         <span class="site-nav__link-label">Emotion Galaxy</span>
                         <span class="site-nav__link-short">Galaxy</span>
                     </a>
-                    <a class="site-nav__link is-active" href="./index.html" aria-current="page" title="Album emotion treemap">
+                    <a class="site-nav__link is-active" href="./index.html" aria-current="page" title="Lyrical themes dot grid">
                         <span class="site-nav__link-label">Lyrical Themes</span>
                         <span class="site-nav__link-short">Themes</span>
                     </a>
@@ -40,21 +40,19 @@
 
         <header class="lyrical-page__hero">
             <h1>Evolution of Lyrical Themes</h1>
-            <p>We used principal component analysis on the emotions that appear in the lyrics, in order to exctract four main lyrical themes.</p>
+            <p>We used principal component analysis on the emotions that appear in the lyrics, in order to extract four main lyrical themes.</p>
+            <p>Each dot is a line of lyrics, colored by theme.</p>
         </header>
 
         <main class="lyrical-page__main">
             <nav id="album-timeline" class="lyrical-album-timeline" aria-label="Album timeline"></nav>
+            <div id="theme-legend" class="theme-legend" aria-label="Theme legend"></div>
             <div class="lyrical-page__panel card lyrical-graph-wrap">
-                <div class="graph" id="treemap">
-                    <svg class="treemap-svg"></svg>
+                <div class="graph" id="dot-grid">
+                    <svg class="dot-grid-svg"></svg>
                 </div>
             </div>
         </main>
-
-        <footer class="site-footer">
-            <p>Album-level emotion treemap &mdash; area reflects each emotion's share.</p>
-        </footer>
 
         <div id="tooltip" class="tooltip"></div>
         <script type="module" src="standalone.js"></script>
