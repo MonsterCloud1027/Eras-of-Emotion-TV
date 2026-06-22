@@ -1,31 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <title>Taylor Swift Lyrics Emotion Galaxy</title>
 </head>
+
 <body>
   <nav id="site-nav" class="site-nav" aria-label="Site"></nav>
 
   <header class="hero">
-    <h1>Eras of Emotion(Taylor's Version)</h1>
-    <p class="hero-subtitle">
-      Each song mapped into a Plutchik-inspired radial emotion space
-    </p>
-    <p class="hero-explanation">
-      Scroll to explore.
-      Start with a mosaic of all covers, then focus on one album at a time.
-    </p>
+    <div id="hero-cover-layers" class="hero-background" aria-hidden="true"></div>
+    <div class="hero-content">
+      <h1>Eras of Emotion(Taylor's Version)</h1>
+      <p class="hero-subtitle">
+        Each song mapped into a Plutchik-inspired radial emotion space
+      </p>
+      <p class="hero-explanation">
+        Scroll to explore.
+        Start with a mosaic of all covers, then focus on one album at a time.
+      </p>
+    </div>
   </header>
 
   <main>
     <section id="scroll-stage" class="scroll-stage">
       <div class="scroll-stage__sticky">
-        <div class="scroll-cover-pin" aria-hidden="true">
-          <div id="scroll-cover-layers" class="scroll-cover-layers"></div>
-        </div>
         <div class="scroll-stage__viz card">
           <div class="scroll-stage__header">
             <div id="scroll-stage-label" class="scroll-stage-label" aria-live="polite">
@@ -50,11 +52,8 @@
             </aside>
           </div>
         </div>
-        <nav
-          id="album-legend"
-          class="album-legend album-rail legend-mode--filter"
-          aria-label="Album filter and navigation"
-        ></nav>
+        <nav id="album-legend" class="album-legend album-rail legend-mode--filter"
+          aria-label="Album filter and navigation"></nav>
       </div>
       <div id="scroll-track" class="scroll-track" aria-label="Scroll through albums"></div>
     </section>
@@ -68,4 +67,5 @@
 
   <script type="module" src="/src/main.js"></script>
 </body>
+
 </html>

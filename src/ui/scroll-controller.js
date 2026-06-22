@@ -97,67 +97,37 @@ export function computeScrollOpacities(stepFloat, albumOrder) {
 }
 
 export function buildCoverLayers(albumOrder) {
-  const root = d3.select("#scroll-cover-layers");
+  const root = d3.select("#hero-cover-layers");
   root.selectAll("*").remove();
 
   const withCovers = albumsWithCovers(albumOrder);
-  const COLS = 4;
-  const ROW_COUNT = 3;
-  /** Row 0 → right, row 1 → left, row 2 → right */
-  const ROW_DIRECTIONS = ["right", "left", "right"];
 
   const grid = root
     .append("div")
-    .attr("class", "cover-layer cover-layer--grid")
+    .attr("class", "cover-layer cover-layer--grid is-marquee-active")
     .attr("data-layer", "global");
 
-  for (let rowIndex = 0; rowIndex < ROW_COUNT; rowIndex += 1) {
-    const rowAlbums = withCovers.slice(rowIndex * COLS, (rowIndex + 1) * COLS);
-    if (!rowAlbums.length) continue;
+  if (!withCovers.length) return;
 
-    const row = grid
-      .append("div")
-      .attr("class", "cover-grid-row")
-      .attr("data-row", rowIndex)
-      .attr("data-direction", ROW_DIRECTIONS[rowIndex]);
+  const row = grid
+    .append("div")
+    .attr("class", "cover-grid-row")
+    .attr("data-row", 0)
+    .attr("data-direction", "left");
 
-    const track = row.append("div").attr("class", "cover-grid-row-track");
+  const track = row.append("div").attr("class", "cover-grid-row-track");
 
-    [...rowAlbums, ...rowAlbums].forEach((album) => {
-      const url = getAlbumCoverUrl(album);
-      track
-        .append("div")
-        .attr("class", "cover-grid-cell")
-        .attr("data-album", album)
-        .style("background-image", `url("${url}")`);
-    });
-  }
-
-  albumOrder.forEach((album) => {
+  [...withCovers, ...withCovers].forEach((album) => {
     const url = getAlbumCoverUrl(album);
-    if (!url) return;
-    root
+    track
       .append("div")
-      .attr("class", "cover-layer cover-layer--album")
+      .attr("class", "cover-grid-cell")
       .attr("data-album", album)
-      .attr("data-layer", "album")
       .style("background-image", `url("${url}")`);
   });
 }
 
-export function setCoverLayerOpacities(opacityByKey) {
-  const grid = d3.select(".cover-layer--grid");
-  if (!grid.empty()) {
-    const globalOp = opacityByKey.global ?? 0;
-    grid.style("opacity", globalOp);
-    grid.classed("is-marquee-active", globalOp > 0.08);
-  }
 
-  d3.selectAll(".cover-layer--album").each(function () {
-    const album = d3.select(this).attr("data-album");
-    d3.select(this).style("opacity", opacityByKey[album] ?? 0);
-  });
-}
 
 /** Scroll spacers only (backgrounds handled by sticky cover layers). */
 export function buildScrollTrack(data) {
@@ -257,7 +227,6 @@ function updateFromScroll() {
     incomingKey: scrollState.incomingKey,
     stepT: scrollState.stepT,
   });
-  setCoverLayerOpacities(scrollState.opacityByKey);
   updateStageLabel(scrollState.opacityByKey, albumOrder);
 }
 
