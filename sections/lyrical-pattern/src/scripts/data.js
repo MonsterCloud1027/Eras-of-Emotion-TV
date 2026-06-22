@@ -2,11 +2,23 @@
 
 import * as d3 from "d3";
 
-import { ALBUM_META } from "../../../../src/config/album-meta.js";
-
 const WORD_DETAILS_URL = "../../../data/cots-word-details.tsv";
 const SECTION_DATA_URL = "../../../data/parsed_lyrics_sections_scored.json";
 const TOKEN_RE = /[a-z']+/g;
+const ALBUM_META = [
+  { code: "TSW", short: "Taylor Swift", style: "Country", year: 2006 },
+  { code: "FER", short: "Fearless", style: "Country", year: 2008 },
+  { code: "SPN", short: "Speak Now", style: "Country", year: 2010 },
+  { code: "RED", short: "Red", style: "Country/Pop", year: 2012 },
+  { code: "NEN", short: "1989", style: "Pop", year: 2014 },
+  { code: "REP", short: "Reputation", style: "Pop", year: 2017 },
+  { code: "LVR", short: "Lover", style: "Pop", year: 2019 },
+  { code: "FOL", short: "Folklore", style: "Indie-Folk", year: 2020 },
+  { code: "EVE", short: "Evermore", style: "Indie-Folk", year: 2020 },
+  { code: "MID", short: "Midnights", style: "Pop", year: 2022 },
+  { code: "TPD", short: "Tortured Poets", style: "Pop", year: 2024 },
+  { code: "LSG", short: "Life Of A Showgirl", style: "Pop", year: 2025 },
+];
 const ALBUM_ORDER = ALBUM_META.map((album) => album.code);
 
 
