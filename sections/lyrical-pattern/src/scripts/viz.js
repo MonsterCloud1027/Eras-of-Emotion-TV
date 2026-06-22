@@ -2,15 +2,26 @@
 
 import * as d3 from "d3";
 
-import { albums, heatMetrics, eraHueScale, eraSolidColor } from "./data.js";
+import { loadHeatmapData, heatMetrics, eraHueScale, eraSolidColor } from "./data.js";
 import { showTip, hideTip } from "./hover.js";
 
+let renderId = 0;
 
-export function drawHeatmap() {
+
+function formatValue(metric, value) {
+  if (!Number.isFinite(value)) return "n/a";
+  if (metric.percent) return `${value.toFixed(1)}%`;
+  return value.toFixed(2);
+}
+
+export async function drawHeatmap() {
+  const currentRenderId = ++renderId;
+  const data = await loadHeatmapData();
+  if (currentRenderId !== renderId) return;
+
   const svg = d3.select("#chart-q8");
   svg.selectAll("*").remove();
 
-  const data = albums;
   const width = Math.min(1140, window.innerWidth - 48);
   const cellH = 54;
   const margin = { top: 40, right: 150, bottom: 90, left: 160 };
@@ -31,14 +42,14 @@ export function drawHeatmap() {
     normalised[m.label] = {};
     data.forEach(d => {
       let v = (d[m.key] - minVal) / ((maxVal - minVal) || 1);
-      if (m.key === "avg_reps") v = 1 - v;
-      normalised[m.label][d.name] = v;
+      if (m.invert) v = 1 - v;
+      normalised[m.label][d.code] = v;
     });
   });
 
   heatMetrics.forEach(m => {
     data.forEach(d => {
-      const v = normalised[m.label][d.name];
+      const v = normalised[m.label][d.code];
       const cellColor = eraHueScale[d.era](0.1 + v * 0.9);
 
       const cell = g.append("rect")
@@ -49,8 +60,7 @@ export function drawHeatmap() {
       cell
         .on("mousemove", (e) => {
           const raw = d[m.key];
-          const suffix = m.key.includes("pct") || m.key === "vocab_richness" ? "%" : "";
-          showTip(`<strong>${d.name}</strong>Era: ${d.era}<br>${m.label}<br>Value: <b>${typeof raw === "number" ? raw.toFixed(1) : raw}${suffix}</b><br>Relative Scale: <b>${(v * 100).toFixed(0)}%</b>`, e);
+          showTip(`<strong>${d.name}</strong>Era: ${d.era}<br>${m.label}<br>Value: <b>${formatValue(m, raw)}</b><br>Relative Scale: <b>${(v * 100).toFixed(0)}%</b>`, e);
           cell.style("opacity", 0.7);
         })
         .on("mouseleave", () => { hideTip(); cell.style("opacity", 1); });

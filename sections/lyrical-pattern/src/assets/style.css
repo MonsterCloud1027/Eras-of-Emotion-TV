@@ -68,9 +68,8 @@ svg text {
 
 .legend {
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
+  flex-direction: row;
+  padding: 8em 0 4em 0 ;
 }
 
 .legend-item {
@@ -79,6 +78,7 @@ svg text {
   gap: 7px;
   font-size: 0.78rem;
   color: #999;
+  cursor: default;
 }
 
 .legend-dot {
