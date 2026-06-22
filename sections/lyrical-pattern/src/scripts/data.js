@@ -2,8 +2,10 @@
 
 import * as d3 from "d3";
 
-const WORD_DETAILS_URL = "../../../data/cots-word-details.tsv";
-const SECTION_DATA_URL = "../../../data/parsed_lyrics_sections_scored.json";
+import { assetUrl } from "../../../../src/config/constants.js";
+
+const WORD_DETAILS_URL = assetUrl("data/cots-word-details.tsv");
+const SECTION_DATA_URL = assetUrl("data/parsed_lyrics_sections_scored.json");
 const TOKEN_RE = /[a-z']+/g;
 const ALBUM_META = [
   { code: "TSW", short: "Taylor Swift", style: "Country", year: 2006 },

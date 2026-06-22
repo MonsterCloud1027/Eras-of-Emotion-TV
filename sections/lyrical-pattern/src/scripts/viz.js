@@ -60,7 +60,7 @@ export async function drawHeatmap() {
       cell
         .on("mousemove", (e) => {
           const raw = d[m.key];
-          showTip(`<strong>${d.name}</strong>Era: ${d.era}<br>${m.label}<br>Value: <b>${formatValue(m, raw)}</b><br>Relative Scale: <b>${(v * 100).toFixed(0)}%</b>`, e);
+          showTip(`<strong>${d.name}</strong><br>Era: ${d.era}<br>${m.label}<br>Value: <b>${formatValue(m, raw)}</b><br>Relative Scale: <b>${(v * 100).toFixed(0)}%</b>`, e);
           cell.style("opacity", 0.7);
         })
         .on("mouseleave", () => { hideTip(); cell.style("opacity", 1); });
